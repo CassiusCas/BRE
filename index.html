@@ -186,21 +186,26 @@
     text-align: center;
     pointer-events: none;
   }
-  .area-label span, .county-label span {
+  .area-label span, .county-label span, .hood-label span {
     font-family: Georgia, Palatino, serif;
-    font-weight: 600;
-    line-height: 1.1;
+    font-weight: 800;
+    line-height: 1.05;
     color: #2f2821;
-    text-shadow: 0 0 2px #fff, 0 0 3px #fff, 0 0 5px #fff;
+    text-shadow: 0 0 2px #fff, 0 0 3px #fff, 0 0 6px #fff, 0 1px 0 #fff;
   }
   .area-label span {
-    font-size: 11px;
-    letter-spacing: 0.04em;
+    font-size: 13px;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
   }
   .county-label span {
-    font-size: 12px;
-    letter-spacing: 0.14em;
+    font-size: 16px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .hood-label span {
+    font-size: 11px;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
   }
   .district-label span {
@@ -445,7 +450,7 @@
     <p id="count" aria-live="polite">Loading map…</p>
   </div>
   <form id="search" role="search">
-    <label class="sr-only" for="searchInput">Search schools, stores, suburbs, and counties</label>
+    <label class="sr-only" for="searchInput">Search schools, stores, neighborhoods, suburbs, and counties</label>
     <input id="searchInput" type="search" placeholder="Search Hoover, elementary, Publix…" autocomplete="off" enterkeyhint="search" spellcheck="false">
     <button type="button" id="searchClear" hidden>Clear</button>
   </form>
@@ -456,6 +461,7 @@
 <div id="tools">
   <button type="button" id="locate">Near me</button>
   <button type="button" id="suburbsBtn" aria-pressed="true">Suburbs</button>
+  <button type="button" id="neighborhoodsBtn" aria-pressed="false">Neighborhoods</button>
   <button type="button" id="countiesBtn" aria-pressed="false">Counties</button>
   <button type="button" id="districtsBtn" aria-pressed="false">Districts</button>
   <button type="button" id="schoolsBtn" aria-pressed="true">Schools</button>
@@ -479,7 +485,7 @@
   <ul id="brandKey"></ul>
   <p class="fine">Named chains keep their own color. Other places in a category share one symbol. Fuel, propane, auto parts, lumber, and fire stations start off.</p>
   <h2>Areas</h2>
-  <p class="fine">Suburbs are city and town limits, plus census places. County lines are visible and are not clickable. When districts are on, a tap opens the school district. Turn Districts off to open the suburb. The dashed ring is 50 miles from downtown Birmingham.</p>
+  <p class="fine">Each suburb and county has its own color, and the name is drawn in that color. Suburbs are city and town limits, plus census places. County lines are visible and are not clickable. Neighborhoods are a separate layer for Birmingham and the close-in suburbs. A tap opens the neighborhood when that layer is on. Otherwise a tap opens the school district, or the suburb if Districts are off. The dashed ring is 50 miles from downtown Birmingham.</p>
   <p class="fine" id="sourceNote"></p>
 </aside>
 <section id="sheet" hidden>
@@ -627,17 +633,18 @@ if (!window.L || !window.L.markerClusterGroup) {
 }
 
 async function boot() {
-  let meta, places, counties, districts, schools, amenities;
+  let meta, places, counties, districts, neighborhoods, schools, amenities;
   try {
     const load = (url) => fetch(url).then((response) => {
       if (!response.ok) throw new Error(url);
       return response.json();
     });
-    [meta, places, counties, districts, schools, amenities] = await Promise.all([
+    [meta, places, counties, districts, neighborhoods, schools, amenities] = await Promise.all([
       load("data/meta.json"),
       load("data/places.geojson"),
       load("data/counties.geojson"),
       load("data/districts.geojson"),
+      load("data/neighborhoods.geojson"),
       load("data/schools.json"),
       load("data/amenities.json")
     ]);
@@ -657,6 +664,7 @@ async function boot() {
   const saved = readSaved();
   const layersOn = {
     suburbs: saved.suburbs !== false,
+    neighborhoods: saved.neighborhoods === true,
     counties: saved.counties === true,
     districts: saved.districts === true,
     schools: saved.schools !== false,
@@ -694,6 +702,7 @@ async function boot() {
   const suburbNames = L.layerGroup();
   const countyNames = L.layerGroup();
   const districtNames = L.layerGroup();
+  const neighborhoodNames = L.layerGroup();
   const suburbLayer = L.geoJSON(places, {
     pane: "suburbs",
     style: suburbStyle,
@@ -708,6 +717,11 @@ async function boot() {
     pane: "districts",
     style: districtStyle,
     onEachFeature: (feature, layer) => bindArea(feature, layer, "districts")
+  });
+  const neighborhoodLayer = L.geoJSON(neighborhoods, {
+    pane: "neighborhoods",
+    style: neighborhoodStyle,
+    onEachFeature: (feature, layer) => bindArea(feature, layer, "neighborhoods")
   });
 
   const schoolClusters = L.markerClusterGroup({
@@ -733,6 +747,7 @@ async function boot() {
       ["ring", 330],
       ["counties", 340],
       ["suburbs", 350],
+      ["neighborhoods", 360],
       ["districts", 370],
       ["stores", 420],
       ["schools", 450],
@@ -800,21 +815,31 @@ async function boot() {
     const name = feature.properties.name;
     const hot = selectedArea === "suburbs:" + name || textMatch(name);
     return {
-      color: hot ? "#241c16" : "#5c5348",
-      weight: hot ? 3 : 1.2,
-      fillColor: suburbColor(name),
-      fillOpacity: 0.42,
-      opacity: 0.95
+      color: hot ? "#241c16" : (feature.properties.stroke || "#5c5348"),
+      weight: hot ? 3.5 : 2.1,
+      fillColor: feature.properties.color || suburbColor(name),
+      fillOpacity: hot ? 0.84 : 0.72,
+      opacity: 1
     };
   }
   function countyStyle(feature) {
     const hot = selectedArea === "counties:" + feature.properties.name || textMatch(feature.properties.name);
     return {
-      color: hot ? "#241c16" : "#3f372f",
-      weight: hot ? 3 : 1.8,
-      fillColor: "#c4b8a8",
-      fillOpacity: 0.14,
-      opacity: 0.9
+      color: hot ? "#241c16" : (feature.properties.stroke || "#3f372f"),
+      weight: hot ? 3.5 : 2.6,
+      fillColor: feature.properties.color || "#c4b8a8",
+      fillOpacity: hot ? 0.5 : 0.38,
+      opacity: 1
+    };
+  }
+  function neighborhoodStyle(feature) {
+    const hot = selectedArea === "neighborhoods:" + feature.properties.name || textMatch(feature.properties.name);
+    return {
+      color: hot ? "#241c16" : (feature.properties.stroke || "#5c5348"),
+      weight: hot ? 3 : 1.5,
+      fillColor: feature.properties.color || "#d9c8b4",
+      fillOpacity: hot ? 0.72 : 0.55,
+      opacity: 1
     };
   }
   function districtStyle(feature) {
@@ -835,18 +860,20 @@ async function boot() {
       openArea(group, feature, layer);
     });
   }
-  function labelIcon(text, className) {
+  function labelIcon(text, className, color) {
+    const paint = color ? ` style="color:${color}"` : "";
     return L.divIcon({
       className,
-      html: `<span>${escapeHtml(text)}</span>`,
-      iconSize: [140, 18],
-      iconAnchor: [70, 9]
+      html: `<span${paint}>${escapeHtml(text)}</span>`,
+      iconSize: [168, 24],
+      iconAnchor: [84, 12]
     });
   }
   function syncLabels() {
     suburbNames.clearLayers();
     countyNames.clearLayers();
     districtNames.clearLayers();
+    neighborhoodNames.clearLayers();
     const zoom = map.getZoom();
     if (layersOn.suburbs) {
       places.features.forEach((feature) => {
@@ -857,7 +884,7 @@ async function boot() {
         L.marker([lat, lng], {
           pane: "names",
           interactive: false,
-          icon: labelIcon(feature.properties.name, "area-label")
+          icon: labelIcon(feature.properties.name, "area-label", feature.properties.stroke)
         }).addTo(suburbNames);
       });
     }
@@ -867,7 +894,7 @@ async function boot() {
         L.marker([lat, lng], {
           pane: "names",
           interactive: false,
-          icon: labelIcon(feature.properties.name, "county-label")
+          icon: labelIcon(feature.properties.name, "county-label", feature.properties.stroke)
         }).addTo(countyNames);
       });
     }
@@ -881,6 +908,19 @@ async function boot() {
         }).addTo(districtNames);
       });
     }
+    if (layersOn.neighborhoods) {
+      neighborhoods.features.forEach((feature) => {
+        const area = feature.properties.area_km2 || 0;
+        const min = area > 6 ? 12 : area > 1.5 ? 13 : 14;
+        if (zoom < min) return;
+        const [lat, lng] = feature.properties.label;
+        L.marker([lat, lng], {
+          pane: "names",
+          interactive: false,
+          icon: labelIcon(feature.properties.name, "hood-label", feature.properties.stroke)
+        }).addTo(neighborhoodNames);
+      });
+    }
   }
   function setLayer(layer, show) {
     const on = map.hasLayer(layer);
@@ -890,12 +930,16 @@ async function boot() {
   function syncPolygons() {
     setLayer(countyLayer, layersOn.counties);
     setLayer(suburbLayer, layersOn.suburbs);
+    setLayer(neighborhoodLayer, layersOn.neighborhoods);
     setLayer(districtLayer, layersOn.districts);
     setLayer(countyNames, layersOn.counties);
     setLayer(suburbNames, layersOn.suburbs);
+    setLayer(neighborhoodNames, layersOn.neighborhoods);
     setLayer(districtNames, layersOn.districts);
+    map.getPane("districts").style.pointerEvents = layersOn.neighborhoods ? "none" : "auto";
     if (layersOn.suburbs) suburbLayer.setStyle(suburbStyle);
     if (layersOn.counties) countyLayer.setStyle(countyStyle);
+    if (layersOn.neighborhoods) neighborhoodLayer.setStyle(neighborhoodStyle);
     if (layersOn.districts) districtLayer.setStyle(districtStyle);
     syncLabels();
   }
@@ -994,7 +1038,7 @@ async function boot() {
     if (group === "suburbs") {
       return `
         <div class="sheet-top"><div>
-          <p class="eyebrow">${pill(props.kind || "Place", suburbColor(props.name))}</p>
+          <p class="eyebrow">${pill(props.kind || "Place", props.color || suburbColor(props.name))}</p>
           <h2 id="sheetTitle">${escapeHtml(props.name)}</h2>
         </div></div>
         ${props.counties ? `<p class="note">${escapeHtml(countyPhrase(props.counties))}</p>` : ""}
@@ -1004,10 +1048,20 @@ async function boot() {
     if (group === "counties") {
       return `
         <div class="sheet-top"><div>
-          <p class="eyebrow">${pill("County", "#3f372f")}</p>
+          <p class="eyebrow">${pill("County", props.stroke || "#3f372f")}</p>
           <h2 id="sheetTitle">${escapeHtml(props.name)}</h2>
         </div></div>
         <p class="hint">The whole county is shown when the 50-mile ring touches it. County lines are not clickable. Search or the list opens one.</p>
+        ${closeButton()}`;
+    }
+    if (group === "neighborhoods") {
+      return `
+        <div class="sheet-top"><div>
+          <p class="eyebrow">${pill(props.city || "Neighborhood", props.color || "#6d6258")}</p>
+          <h2 id="sheetTitle">${escapeHtml(props.name)}</h2>
+        </div></div>
+        <p class="note">${escapeHtml(props.city || "")}</p>
+        <p class="hint">${escapeHtml(props.note || "")}</p>
         ${closeButton()}`;
     }
     return `
@@ -1048,16 +1102,19 @@ async function boot() {
     point.y += (sheetEl.offsetHeight || 240) / 2;
     map.flyTo(map.unproject(point, zoom), zoom, { duration: 0.45 });
   }
-  function findAreaLayer(group, name) {
-    const groupLayer = group === "suburbs" ? suburbLayer : group === "counties" ? countyLayer : districtLayer;
+  function findAreaLayer(group, name, city) {
+    const groupLayer = group === "suburbs" ? suburbLayer : group === "counties" ? countyLayer : group === "neighborhoods" ? neighborhoodLayer : districtLayer;
     let found = null;
     groupLayer.eachLayer((candidate) => {
-      if (candidate.feature && candidate.feature.properties.name === name) found = candidate;
+      const props = candidate.feature && candidate.feature.properties;
+      if (!props || props.name !== name) return;
+      if (city && props.city && props.city !== city) return;
+      found = candidate;
     });
     return found;
   }
   function openArea(group, feature, layer) {
-    if (!layer) layer = findAreaLayer(group, feature.properties.name);
+    if (!layer) layer = findAreaLayer(group, feature.properties.name, feature.properties.city);
     if (selected) selected = null;
     layersOn[group] = true;
     selectedArea = group + ":" + feature.properties.name;
@@ -1075,6 +1132,7 @@ async function boot() {
   function openList() {
     const shown = visiblePins();
     const areas = [
+      ...areaFeatures(neighborhoods, "neighborhoods"),
       ...areaFeatures(places, "suburbs"),
       ...areaFeatures(counties, "counties"),
       ...areaFeatures(districts, "districts")
@@ -1096,9 +1154,9 @@ async function boot() {
       </button></li>`;
     }).join("");
     const areaRows = areas.slice(0, 40).map(({ group, feature }) => {
-      const label = group === "suburbs" ? feature.properties.kind : group === "counties" ? "County" : "District";
-      return `<li><button type="button" data-area="${escapeHtml(group + ":" + feature.properties.name)}">
-        <span class="mark round" style="--c:${group === "districts" ? "#1f4b99" : "#6d6258"}"></span>
+      const label = group === "suburbs" ? feature.properties.kind : group === "counties" ? "County" : group === "neighborhoods" ? (feature.properties.city || "Neighborhood") : "District";
+      return `<li><button type="button" data-area="${escapeHtml(group + ":" + feature.properties.name)}" data-city="${escapeHtml(feature.properties.city || "")}">
+        <span class="mark round" style="--c:${feature.properties.color || (group === "districts" ? "#1f4b99" : "#6d6258")}"></span>
         <span class="name">${escapeHtml(feature.properties.name)}</span>
         <span class="meta">${escapeHtml(label)}</span>
       </button></li>`;
@@ -1130,6 +1188,7 @@ async function boot() {
   }
   function paintToggles() {
     document.getElementById("suburbsBtn").setAttribute("aria-pressed", String(layersOn.suburbs));
+    document.getElementById("neighborhoodsBtn").setAttribute("aria-pressed", String(layersOn.neighborhoods));
     document.getElementById("countiesBtn").setAttribute("aria-pressed", String(layersOn.counties));
     document.getElementById("districtsBtn").setAttribute("aria-pressed", String(layersOn.districts));
     document.getElementById("schoolsBtn").setAttribute("aria-pressed", String(layersOn.schools));
@@ -1139,6 +1198,7 @@ async function boot() {
   function persist() {
     localStorage.setItem("bre-layers", JSON.stringify({
       suburbs: layersOn.suburbs,
+      neighborhoods: layersOn.neighborhoods,
       counties: layersOn.counties,
       districts: layersOn.districts,
       schools: layersOn.schools,
@@ -1177,7 +1237,7 @@ async function boot() {
   document.getElementById("brandKey").innerHTML = brandRows.map(([name, [color, mark]]) =>
     `<li><span class="pin store sample" style="--pin:${color};--ink:${inkFor(color)}">${escapeHtml(mark)}</span>${escapeHtml(name)}</li>`
   ).join("");
-  document.getElementById("sourceNote").textContent = "Census places and counties, NCES school locations and districts, OpenStreetMap amenities.";
+  document.getElementById("sourceNote").textContent = "Census places and counties, City of Birmingham neighborhoods, Jefferson and Shelby parcel areas for the close-in suburbs, NCES schools, OpenStreetMap amenities. Neighborhood names for the suburbs come from The Move Genie.";
 
   schoolChips.addEventListener("click", (event) => {
     const button = event.target.closest("[data-chip]");
@@ -1192,6 +1252,7 @@ async function boot() {
     toggleSet(categories, button.dataset.chip, "stores");
   });
   document.getElementById("suburbsBtn").addEventListener("click", () => { layersOn.suburbs = !layersOn.suburbs; refresh(); });
+  document.getElementById("neighborhoodsBtn").addEventListener("click", () => { layersOn.neighborhoods = !layersOn.neighborhoods; refresh(); });
   document.getElementById("countiesBtn").addEventListener("click", () => { layersOn.counties = !layersOn.counties; refresh(); });
   document.getElementById("districtsBtn").addEventListener("click", () => { layersOn.districts = !layersOn.districts; refresh(); });
   document.getElementById("schoolsBtn").addEventListener("click", () => { layersOn.schools = !layersOn.schools; refresh(); });
@@ -1219,7 +1280,9 @@ async function boot() {
   searchForm.addEventListener("submit", (event) => {
     event.preventDefault();
     searchInput.blur();
-    const first = visiblePins()[0] || areaFeatures(places, "suburbs")[0];
+    const first = visiblePins()[0]
+      || areaFeatures(neighborhoods, "neighborhoods")[0]
+      || areaFeatures(places, "suburbs")[0];
     if (first && first.kind) openPin(first, true);
     else if (first && first.feature) openArea(first.group, first.feature, null);
   });
@@ -1256,8 +1319,9 @@ async function boot() {
     if (!areaButton) return;
     const [group, ...rest] = areaButton.dataset.area.split(":");
     const name = rest.join(":");
-    const collection = group === "suburbs" ? places : group === "counties" ? counties : districts;
-    const feature = collection.features.find((item) => item.properties.name === name);
+    const collection = group === "suburbs" ? places : group === "counties" ? counties : group === "neighborhoods" ? neighborhoods : districts;
+    const city = areaButton.dataset.city || "";
+    const feature = collection.features.find((item) => item.properties.name === name && (!city || item.properties.city === city));
     if (feature) openArea(group, feature, null);
   });
   map.on("click", () => {
