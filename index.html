@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Birmingham">
+<meta name="theme-color" content="#f6f3ee">
+<title>Birmingham</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+<style>
+  :root {
+    --ink: #241c16;
+    --muted: #6d6258;
+    --paper: #f6f3ee;
+    --line: #e4ddd4;
+    --card: #fffdf9;
+    --public: #1f4b99;
+    --private: #8c3a4b;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    overscroll-behavior: none;
+  }
+  body {
+    position: relative;
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    flex: none;
+    padding: calc(10px + env(safe-area-inset-top)) 14px 8px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    z-index: 20;
+  }
+  .title-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  h1 {
+    margin: 0;
+    font-family: Georgia, "Iowan Old Style", Palatino, serif;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  h1 button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+  #count {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+  #search { position: relative; margin: 0 0 8px; }
+  #search input {
+    width: 100%;
+    height: 40px;
+    padding: 0 72px 0 14px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font: 500 15px/1 "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  }
+  #search input::placeholder { color: var(--muted); }
+  #search input:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
+  #search input::-webkit-search-cancel-button,
+  #search input::-webkit-search-decoration { display: none; }
+  #searchClear {
+    position: absolute;
+    right: 6px;
+    top: 6px;
+    height: 28px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--paper);
+    color: var(--ink);
+    font: 650 13px/1 "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    cursor: pointer;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .chip-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 0 6px;
+    padding: 0 0 2px;
+  }
+  .chip-row::-webkit-scrollbar { display: none; }
+  .chip-row[hidden] { display: none; }
+  .chip {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font: 600 13px/1 "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .chip .swatch {
+    width: 10px;
+    height: 10px;
+    background: var(--c, var(--ink));
+    border: 1px solid rgba(36, 28, 22, 0.15);
+  }
+  .chip .swatch.elementary { border-radius: 50%; }
+  .chip .swatch.middle { border-radius: 2px; }
+  .chip .swatch.high { transform: rotate(45deg); border-radius: 1px; }
+  .chip .swatch.other { border-radius: 50%; box-shadow: inset 0 0 0 2px #fff; }
+  .chip .swatch.dot { border-radius: 50%; }
+  .chip[aria-pressed="true"] {
+    background: var(--c, var(--ink));
+    border-color: transparent;
+    color: var(--on, #fff);
+  }
+  .chip[aria-pressed="true"] .swatch {
+    background: currentColor;
+    border-color: transparent;
+    box-shadow: none;
+  }
+  #map {
+    position: relative;
+    z-index: 0;
+    flex: 1;
+    min-height: 0;
+    background: #e6e2da;
+  }
+  .leaflet-container { font-family: inherit; background: #e6e2da; }
+  .raster-streets .leaflet-tile-pane { filter: grayscale(0.85) brightness(1.06) contrast(0.9); }
+  .leaflet-top.leaflet-right { top: 10px; }
+  .leaflet-control-attribution {
+    font-size: 10px;
+    max-width: min(70vw, 280px);
+    white-space: normal;
+    line-height: 1.3;
+  }
+  .area-label, .county-label {
+    background: none;
+    border: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .area-label span, .county-label span {
+    font-family: Georgia, Palatino, serif;
+    font-weight: 600;
+    line-height: 1.1;
+    color: #2f2821;
+    text-shadow: 0 0 2px #fff, 0 0 3px #fff, 0 0 5px #fff;
+  }
+  .area-label span {
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .county-label span {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .district-label span {
+    font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #1f4b99;
+    text-shadow: 0 0 2px #fff, 0 0 3px #fff, 0 0 5px #fff;
+  }
+  .pin-icon, .cluster-wrap { background: none; border: 0; }
+  .pin {
+    display: grid;
+    place-items: center;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(36, 28, 22, 0.28);
+  }
+  .pin.school {
+    width: 28px;
+    height: 28px;
+    background: var(--pin);
+    color: #fff;
+    font: 800 12px/1 "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  }
+  .pin.school.elementary { border-radius: 50%; }
+  .pin.school.middle { border-radius: 6px; }
+  .pin.school.high {
+    width: 22px;
+    height: 22px;
+    margin: 3px;
+    border-radius: 3px;
+    transform: rotate(45deg);
+  }
+  .pin.school.high span { transform: rotate(-45deg); display: block; }
+  .pin.school.other {
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--pin), 0 2px 8px rgba(36, 28, 22, 0.28);
+  }
+  .pin.store {
+    min-width: 28px;
+    height: 26px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--pin);
+    color: var(--ink, #fff);
+    font: 800 10px/1 "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    white-space: nowrap;
+  }
+  .pin.is-on { outline: 3px solid var(--pin); outline-offset: 2px; }
+  .cluster {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--c);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(36, 28, 22, 0.28);
+    font: 700 12px/1 "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  }
+  #tools {
+    position: absolute;
+    z-index: 500;
+    right: 12px;
+    top: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    max-height: calc(100dvh - 140px);
+    overflow: auto;
+    pointer-events: none;
+    scrollbar-width: none;
+  }
+  #tools::-webkit-scrollbar { display: none; }
+  #tools button, #legend, .sheet-card { pointer-events: auto; }
+  #tools button {
+    height: 36px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--ink);
+    box-shadow: 0 2px 12px rgba(36, 28, 22, 0.16);
+    font: 650 13px/1 "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  #tools button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+  #legend {
+    position: absolute;
+    z-index: 500;
+    left: 12px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    width: min(340px, calc(100% - 24px));
+    max-height: min(58dvh, 520px);
+    overflow: auto;
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: 0 8px 28px rgba(36, 28, 22, 0.18);
+    padding: 14px 14px 12px;
+  }
+  #legend h2 {
+    margin: 14px 0 8px;
+    font: 650 14px/1.2 "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  }
+  #legend h2:first-child { margin-top: 0; }
+  #legend ul { list-style: none; margin: 0; padding: 0; }
+  #legend li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 28px;
+    font-size: 14px;
+  }
+  #legend .sample { margin: 0; box-shadow: none; }
+  #legend .pin.school.high.sample { transform: rotate(45deg); }
+  #legend .fine {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+  }
+  @media (max-width: 700px) {
+    #legend { width: calc(100% - 116px); max-height: min(52dvh, 460px); }
+  }
+  #sheet[hidden], #legend[hidden] { display: none !important; }
+  #sheet {
+    position: absolute;
+    z-index: 800;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+  }
+  .sheet-card {
+    width: min(520px, 100%);
+    max-height: min(72dvh, 640px);
+    overflow: auto;
+    background: var(--card);
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -8px 30px rgba(36, 28, 22, 0.18);
+    padding: 8px 16px calc(16px + env(safe-area-inset-bottom));
+  }
+  .close-bar {
+    display: block;
+    width: 100%;
+    height: 48px;
+    margin-top: 16px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--ink);
+    color: #fff;
+    font: 650 16px/1 "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    cursor: pointer;
+  }
+  .grab {
+    width: 36px;
+    height: 4px;
+    border-radius: 99px;
+    background: #ddd4c8;
+    margin: 4px auto 10px;
+  }
+  .sheet-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .eyebrow { margin: 0 0 4px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: var(--c);
+    color: var(--on, #fff);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+  #sheet h2 {
+    margin: 0;
+    font-family: Georgia, Palatino, serif;
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+  .area, .note, .addr { margin: 8px 0 0; line-height: 1.4; }
+  .area, .addr { color: var(--muted); font-size: 14px; }
+  .note { font-size: 16px; }
+  .hint { margin: 8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
+  .spot-list { list-style: none; margin: 12px 0 0; padding: 0; }
+  .spot-list button {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 14px 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 10px;
+    row-gap: 2px;
+    text-align: left;
+    padding: 12px 0;
+    border: 0;
+    border-top: 1px solid var(--line);
+    background: none;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+  }
+  .spot-list .mark {
+    grid-row: 1 / span 2;
+    width: 12px;
+    height: 12px;
+    margin-top: 4px;
+    background: var(--c);
+  }
+  .spot-list .mark.elementary, .spot-list .mark.round { border-radius: 50%; }
+  .spot-list .mark.middle { border-radius: 2px; }
+  .spot-list .mark.high { transform: rotate(45deg); border-radius: 1px; }
+  .spot-list .name { font-weight: 650; font-size: 16px; }
+  .spot-list .meta { color: var(--muted); font-size: 13px; }
+  #toast {
+    position: absolute;
+    z-index: 700;
+    left: 50%;
+    bottom: calc(24px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    max-width: min(420px, calc(100% - 24px));
+    background: var(--ink);
+    color: #fff;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 14px;
+    line-height: 1.35;
+  }
+  #offline { margin: 24px 16px; line-height: 1.45; }
+</style>
+</head>
+<body>
+<header>
+  <div class="title-row">
+    <h1><button type="button" id="home" title="Show the 50-mile map">Birmingham</button></h1>
+    <p id="count" aria-live="polite">Loading map…</p>
+  </div>
+  <form id="search" role="search">
+    <label class="sr-only" for="searchInput">Search schools, stores, suburbs, and counties</label>
+    <input id="searchInput" type="search" placeholder="Search Hoover, elementary, Publix…" autocomplete="off" enterkeyhint="search" spellcheck="false">
+    <button type="button" id="searchClear" hidden>Clear</button>
+  </form>
+  <div class="chip-row" id="schoolChips" role="toolbar" aria-label="Filter schools"></div>
+  <div class="chip-row" id="storeChips" role="toolbar" aria-label="Filter amenities" hidden></div>
+</header>
+<div id="map" role="application" aria-label="Map of Birmingham and the surrounding 50 miles"></div>
+<div id="tools">
+  <button type="button" id="locate">Near me</button>
+  <button type="button" id="suburbsBtn" aria-pressed="true">Suburbs</button>
+  <button type="button" id="countiesBtn" aria-pressed="false">Counties</button>
+  <button type="button" id="districtsBtn" aria-pressed="false">Districts</button>
+  <button type="button" id="schoolsBtn" aria-pressed="true">Schools</button>
+  <button type="button" id="storesBtn" aria-pressed="false">Amenities</button>
+  <button type="button" id="listBtn" aria-pressed="false">List</button>
+  <button type="button" id="keyBtn" aria-pressed="false" aria-controls="legend">Key</button>
+</div>
+<aside id="legend" hidden>
+  <h2>Schools</h2>
+  <ul>
+    <li><span class="pin school elementary sample" style="--pin:#1f4b99"><span>E</span></span> Elementary, circle</li>
+    <li><span class="pin school middle sample" style="--pin:#1f4b99"><span>M</span></span> Middle, square</li>
+    <li><span class="pin school high sample" style="--pin:#1f4b99"><span>H</span></span> High school, diamond</li>
+    <li><span class="pin school other sample" style="--pin:#1f4b99"><span>+</span></span> Combined or other grades</li>
+    <li><span class="pin school elementary sample" style="--pin:#1f4b99"></span> Blue is public</li>
+    <li><span class="pin school elementary sample" style="--pin:#8c3a4b"></span> Burgundy is private</li>
+  </ul>
+  <p class="fine">The shape is the school’s main level. It still shows under every age group it teaches, so a 7–12 high school appears with both Middle and High. The ring is a combined school. Sixth grade stays elementary when the school stops there.</p>
+  <p class="fine" id="districtNote"></p>
+  <h2>Amenities</h2>
+  <ul id="brandKey"></ul>
+  <p class="fine">Named chains keep their own color. Other places in a category share one symbol. Fuel, propane, auto parts, lumber, and fire stations start off.</p>
+  <h2>Areas</h2>
+  <p class="fine">Suburbs are city and town limits, plus census places. Counties are a separate overlay. The dashed ring is 50 miles from downtown Birmingham.</p>
+  <p class="fine" id="sourceNote"></p>
+</aside>
+<section id="sheet" hidden>
+  <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="grab"></div>
+    <div id="sheetBody"></div>
+  </div>
+</section>
+<div id="toast" hidden></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const LEVELS = [
+  ["elementary", "Elementary", "E"],
+  ["middle", "Middle", "M"],
+  ["high", "High", "H"],
+  ["other", "Other", "+"]
+];
+const LEVEL_LABEL = Object.fromEntries(LEVELS.map(([id, label]) => [id, label]));
+const SECTORS = [
+  ["public", "Public", "#1f4b99"],
+  ["private", "Private", "#8c3a4b"]
+];
+const CATEGORIES = [
+  ["grocery_full", "Grocery", "#3e6b48", "G"],
+  ["grocery_small", "Dollar", "#c4a035", "$"],
+  ["warehouse_club", "Club", "#7a2e2e", "Wh"],
+  ["general_merchandise", "General", "#a15c38", "Gm"],
+  ["hospital", "Hospital", "#9b2335", "+"],
+  ["urgent_care", "Urgent", "#c46b4a", "Uc"],
+  ["pharmacy", "Pharmacy", "#2f6f8f", "Rx"],
+  ["hardware", "Hardware", "#e07a2f", "Hw"],
+  ["farm_supply", "Farm", "#6b8f3c", "Fm"],
+  ["fire_station", "Fire", "#b23a2f", "Fd"],
+  ["lumber", "Lumber", "#8d6e63", "Lb"],
+  ["fuel", "Fuel", "#4a4a4a", "Fu"],
+  ["propane", "Propane", "#5c6b73", "Pr"],
+  ["auto_parts", "Auto", "#3f5c6b", "Ap"]
+];
+const CATEGORY_META = Object.fromEntries(CATEGORIES.map(([id, label, color, mark]) => [id, { label, color, mark }]));
+const HARDWARE = new Set(["hardware_major", "hardware_minor"]);
+const QUIET_CATEGORIES = new Set(["lumber", "fuel", "propane", "auto_parts", "fire_station"]);
+const BRANDS = {
+  "Publix": ["#2e8b57", "Px"],
+  "Walmart": ["#0071ce", "W"],
+  "Costco": ["#e31837", "Co"],
+  "Sam's Club": ["#00a3e0", "S"],
+  "BJ's": ["#d22630", "BJ"],
+  "Target": ["#cc0000", "T"],
+  "Aldi": ["#00005c", "A"],
+  "Kroger": ["#004b8d", "K"],
+  "Piggly Wiggly": ["#e10600", "PW"],
+  "Winn-Dixie": ["#7a1f3d", "WD"],
+  "Foodland": ["#2f6b3a", "Fl"],
+  "Food City": ["#f36f21", "FC"],
+  "Ingles": ["#00573f", "In"],
+  "Save-A-Lot": ["#ffc72c", "SL"],
+  "Food Giant": ["#6b3fa0", "FG"],
+  "IGA": ["#c45c26", "IGA"],
+  "Whole Foods": ["#00674f", "WF"],
+  "Trader Joe's": ["#d22630", "TJ"],
+  "Sprouts": ["#6ba644", "Sp"],
+  "Western Supermarket": ["#1f4e79", "We"],
+  "Fresh Value": ["#3d7a4a", "FV"],
+  "The Fresh Market": ["#2c5f2d", "FM"],
+  "Dollar General": ["#ffd100", "DG"],
+  "Family Dollar": ["#f15a22", "FD"],
+  "Dollar Tree": ["#1f8a4c", "DT"],
+  "Home Depot": ["#f96302", "HD"],
+  "Lowe's": ["#004990", "Lo"],
+  "Ace Hardware": ["#d32f2f", "Ace"],
+  "Harbor Freight": ["#111111", "HF"],
+  "True Value": ["#e2231a", "TV"],
+  "Do it Best": ["#0057a8", "DB"],
+  "84 Lumber": ["#0b3a66", "84"],
+  "Tractor Supply": ["#8b1a1a", "TS"],
+  "Rural King": ["#f2b705", "RK"],
+  "CVS": ["#cc0000", "CVS"],
+  "Walgreens": ["#8e1b2c", "Wag"],
+  "AutoZone": ["#f36f21", "AZ"],
+  "O'Reilly": ["#00843d", "OR"],
+  "Advance Auto Parts": ["#c8102e", "AA"],
+  "NAPA": ["#0033a0", "NA"],
+  "AmeriGas": ["#005eb8", "AG"],
+  "Ferrellgas": ["#e35205", "Fg"],
+  "Suburban Propane": ["#007a33", "SP"]
+};
+const SUBURB_COLORS = ["#c5d5b8", "#e4cbb0", "#c9d6e6", "#e6cdc6", "#d7d0e6", "#d5e0c8", "#ead9a8", "#d9c8b4", "#c9ddd2", "#e7d4c6"];
+
+const countEl = document.getElementById("count");
+const sheetEl = document.getElementById("sheet");
+const sheetBody = document.getElementById("sheetBody");
+const legendEl = document.getElementById("legend");
+const toastEl = document.getElementById("toast");
+const searchForm = document.getElementById("search");
+const searchInput = document.getElementById("searchInput");
+const searchClear = document.getElementById("searchClear");
+const schoolChips = document.getElementById("schoolChips");
+const storeChips = document.getElementById("storeChips");
+
+function inkFor(hex) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 160 ? "#241c16" : "#fff";
+}
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[char]));
+}
+function suburbColor(name) {
+  let hash = 0;
+  for (const char of name) hash = (hash * 33 + char.charCodeAt(0)) >>> 0;
+  return SUBURB_COLORS[hash % SUBURB_COLORS.length];
+}
+function categoryId(category) {
+  return HARDWARE.has(category) ? "hardware" : category;
+}
+function categoryInfo(category) {
+  return CATEGORY_META[categoryId(category)] || { label: category, color: "#6d6258", mark: "•" };
+}
+function brandInfo(pin) {
+  if (pin.brand && BRANDS[pin.brand]) {
+    const [color, mark] = BRANDS[pin.brand];
+    return { color, mark, ink: inkFor(color), label: pin.brand };
+  }
+  const info = categoryInfo(pin.category);
+  return { color: info.color, mark: info.mark, ink: inkFor(info.color), label: info.label };
+}
+
+function showToast(message) {
+  toastEl.hidden = false;
+  toastEl.textContent = message;
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => { toastEl.hidden = true; }, 3600);
+}
+
+if (!window.L || !window.L.markerClusterGroup) {
+  document.getElementById("map").innerHTML = "<p id=\"offline\">The map library did not load. Open this page again when the connection is back.</p>";
+} else {
+  boot();
+}
+
+async function boot() {
+  let meta, places, counties, districts, schools, amenities;
+  try {
+    const load = (url) => fetch(url).then((response) => {
+      if (!response.ok) throw new Error(url);
+      return response.json();
+    });
+    [meta, places, counties, districts, schools, amenities] = await Promise.all([
+      load("data/meta.json"),
+      load("data/places.geojson"),
+      load("data/counties.geojson"),
+      load("data/districts.geojson"),
+      load("data/schools.json"),
+      load("data/amenities.json")
+    ]);
+  } catch (error) {
+    countEl.textContent = "Map data did not load";
+    showToast("The map files did not load. Use a local server, not a saved file.");
+    return;
+  }
+
+  schools.forEach((school) => { school.kind = "school"; });
+  amenities.forEach((place, index) => {
+    place.kind = "store";
+    place.id = "store-" + index;
+  });
+  const pins = schools.concat(amenities);
+
+  const saved = readSaved();
+  const layersOn = {
+    suburbs: saved.suburbs !== false,
+    counties: saved.counties === true,
+    districts: saved.districts === true,
+    schools: saved.schools !== false,
+    stores: saved.stores === true
+  };
+  const levels = new Set(saved.levels || LEVELS.map(([id]) => id));
+  const sectors = new Set(saved.sectors || SECTORS.map(([id]) => id));
+  const categories = new Set(saved.categories || CATEGORIES.map(([id]) => id).filter((id) => !QUIET_CATEGORIES.has(id)));
+  let query = "";
+  let selected = null;
+  let selectedArea = "";
+  let me = null;
+  let toastTimer = 0;
+
+  const map = L.map("map", {
+    zoomControl: true,
+    preferCanvas: true,
+    center: meta.center,
+    zoom: 9,
+    maxZoom: 19
+  });
+  addPanes(map);
+  addStreets(map);
+
+  const ring = L.circle(meta.center, {
+    pane: "ring",
+    radius: meta.miles * 1609.344,
+    color: "#241c16",
+    weight: 1.25,
+    dashArray: "2 7",
+    fill: false,
+    interactive: false
+  }).addTo(map);
+
+  const suburbNames = L.layerGroup();
+  const countyNames = L.layerGroup();
+  const districtNames = L.layerGroup();
+  const suburbLayer = L.geoJSON(places, {
+    pane: "suburbs",
+    style: suburbStyle,
+    onEachFeature: (feature, layer) => bindArea(feature, layer, "suburbs")
+  });
+  const countyLayer = L.geoJSON(counties, {
+    pane: "counties",
+    style: countyStyle,
+    onEachFeature: (feature, layer) => bindArea(feature, layer, "counties")
+  });
+  const districtLayer = L.geoJSON(districts, {
+    pane: "districts",
+    style: districtStyle,
+    onEachFeature: (feature, layer) => bindArea(feature, layer, "districts")
+  });
+
+  const schoolClusters = L.markerClusterGroup({
+    showCoverageOnHover: false,
+    maxClusterRadius: 48,
+    disableClusteringAtZoom: 15,
+    spiderfyOnMaxZoom: true,
+    clusterPane: "schools",
+    iconCreateFunction: clusterIcon("#1f4b99")
+  });
+  const storeClusters = L.markerClusterGroup({
+    showCoverageOnHover: false,
+    maxClusterRadius: 42,
+    disableClusteringAtZoom: 14,
+    spiderfyOnMaxZoom: true,
+    clusterPane: "stores",
+    iconCreateFunction: clusterIcon("#6d4c2f")
+  });
+  const markerById = new Map();
+
+  function addPanes(target) {
+    const panes = [
+      ["ring", 330],
+      ["counties", 340],
+      ["suburbs", 350],
+      ["districts", 370],
+      ["stores", 420],
+      ["schools", 450],
+      ["names", 470],
+      ["me", 490]
+    ];
+    panes.forEach(([name, z]) => {
+      target.createPane(name);
+      target.getPane(name).style.zIndex = z;
+    });
+  }
+
+  function clusterIcon(color) {
+    return (cluster) => L.divIcon({
+      className: "cluster-wrap",
+      html: `<div class="cluster" style="--c:${color}">${cluster.getChildCount()}</div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18]
+    });
+  }
+
+  function tokens() {
+    return query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  }
+  function textMatch(value) {
+    const parts = tokens();
+    if (!parts.length) return false;
+    const hay = String(value).toLowerCase();
+    return parts.every((part) => hay.includes(part));
+  }
+  function pinMatch(pin) {
+    const parts = tokens();
+    if (!parts.length) return true;
+    const info = pin.kind === "store" ? brandInfo(pin) : null;
+    const hay = [
+      pin.name, pin.city, pin.county, pin.address, pin.district, pin.brand,
+      pin.level, LEVEL_LABEL[pin.level], pin.sector, pin.grades,
+      pin.charter ? "charter" : "",
+      info ? info.label : "",
+      pin.kind === "store" ? categoryInfo(pin.category).label : ""
+    ].join(" ").toLowerCase();
+    return parts.every((part) => hay.includes(part));
+  }
+  function schoolBands(pin) {
+    return pin.serves && pin.serves.length ? pin.serves : [pin.level];
+  }
+  function chipMatch(pin) {
+    if (pin.kind === "school") return schoolBands(pin).some((band) => levels.has(band)) && sectors.has(pin.sector);
+    return categories.has(categoryId(pin.category));
+  }
+  function visiblePins() {
+    return pins.filter((pin) => {
+      if (!chipMatch(pin) || !pinMatch(pin)) return false;
+      if (query) return true;
+      return pin.kind === "school" ? layersOn.schools : layersOn.stores;
+    });
+  }
+  function areaFeatures(collection, group) {
+    if (!query) return [];
+    return collection.features.filter((feature) => textMatch(feature.properties.name))
+      .map((feature) => ({ group, feature }));
+  }
+
+  function suburbStyle(feature) {
+    const name = feature.properties.name;
+    const hot = selectedArea === "suburbs:" + name || textMatch(name);
+    return {
+      color: hot ? "#241c16" : "#5c5348",
+      weight: hot ? 3 : 1.2,
+      fillColor: suburbColor(name),
+      fillOpacity: 0.42,
+      opacity: 0.95
+    };
+  }
+  function countyStyle(feature) {
+    const hot = selectedArea === "counties:" + feature.properties.name || textMatch(feature.properties.name);
+    return {
+      color: hot ? "#241c16" : "#3f372f",
+      weight: hot ? 3 : 1.8,
+      fillColor: "#c4b8a8",
+      fillOpacity: 0.14,
+      opacity: 0.9
+    };
+  }
+  function districtStyle(feature) {
+    const hot = selectedArea === "districts:" + feature.properties.name || textMatch(feature.properties.name);
+    return {
+      color: hot ? "#241c16" : "#1f4b99",
+      weight: hot ? 3.5 : 2,
+      dashArray: hot ? null : "6 4",
+      fillColor: "#1f4b99",
+      fillOpacity: 0.06,
+      opacity: 0.95
+    };
+  }
+
+  function bindArea(feature, layer, group) {
+    layer.on("click", (event) => {
+      L.DomEvent.stopPropagation(event);
+      openArea(group, feature, layer);
+    });
+  }
+  function labelIcon(text, className) {
+    return L.divIcon({
+      className,
+      html: `<span>${escapeHtml(text)}</span>`,
+      iconSize: [140, 18],
+      iconAnchor: [70, 9]
+    });
+  }
+  function syncLabels() {
+    suburbNames.clearLayers();
+    countyNames.clearLayers();
+    districtNames.clearLayers();
+    const zoom = map.getZoom();
+    if (layersOn.suburbs) {
+      places.features.forEach((feature) => {
+        const area = feature.properties.area_km2 || 0;
+        const min = area > 80 ? 10 : area > 25 ? 11 : 12;
+        if (zoom < min) return;
+        const [lat, lng] = feature.properties.label;
+        L.marker([lat, lng], {
+          pane: "names",
+          interactive: false,
+          icon: labelIcon(feature.properties.name, "area-label")
+        }).addTo(suburbNames);
+      });
+    }
+    if (layersOn.counties && zoom >= 9) {
+      counties.features.forEach((feature) => {
+        const [lat, lng] = feature.properties.label;
+        L.marker([lat, lng], {
+          pane: "names",
+          interactive: false,
+          icon: labelIcon(feature.properties.name, "county-label")
+        }).addTo(countyNames);
+      });
+    }
+    if (layersOn.districts && zoom >= 11) {
+      districts.features.forEach((feature) => {
+        const [lat, lng] = feature.properties.label;
+        L.marker([lat, lng], {
+          pane: "names",
+          interactive: false,
+          icon: labelIcon(feature.properties.name, "district-label")
+        }).addTo(districtNames);
+      });
+    }
+  }
+  function setLayer(layer, show) {
+    const on = map.hasLayer(layer);
+    if (show && !on) layer.addTo(map);
+    if (!show && on) map.removeLayer(layer);
+  }
+  function syncPolygons() {
+    setLayer(countyLayer, layersOn.counties);
+    setLayer(suburbLayer, layersOn.suburbs);
+    setLayer(districtLayer, layersOn.districts);
+    setLayer(countyNames, layersOn.counties);
+    setLayer(suburbNames, layersOn.suburbs);
+    setLayer(districtNames, layersOn.districts);
+    if (layersOn.suburbs) suburbLayer.setStyle(suburbStyle);
+    if (layersOn.counties) countyLayer.setStyle(countyStyle);
+    if (layersOn.districts) districtLayer.setStyle(districtStyle);
+    syncLabels();
+  }
+
+  function pinIcon(pin, on) {
+    if (pin.kind === "school") {
+      const color = pin.sector === "private" ? "#8c3a4b" : "#1f4b99";
+      const mark = (LEVELS.find(([id]) => id === pin.level) || ["other", "Other", "+"])[2];
+      return L.divIcon({
+        className: "pin-icon",
+        html: `<div class="pin school ${pin.level}${on ? " is-on" : ""}" style="--pin:${color}"><span>${mark}</span></div>`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+      });
+    }
+    const info = brandInfo(pin);
+    return L.divIcon({
+      className: "pin-icon",
+      html: `<div class="pin store${on ? " is-on" : ""}" style="--pin:${info.color};--ink:${info.ink}">${escapeHtml(info.mark)}</div>`,
+      iconSize: [36, 28],
+      iconAnchor: [18, 14]
+    });
+  }
+  function renderPins() {
+    schoolClusters.clearLayers();
+    storeClusters.clearLayers();
+    markerById.clear();
+    const shown = visiblePins();
+    shown.forEach((pin) => {
+      const marker = L.marker([pin.lat, pin.lng], {
+        pane: pin.kind === "school" ? "schools" : "stores",
+        icon: pinIcon(pin, selected && selected.id === pin.id && selected.kind === pin.kind)
+      });
+      marker.on("click", (event) => {
+        L.DomEvent.stopPropagation(event);
+        openPin(pin, false);
+      });
+      markerById.set(pin.kind + ":" + pin.id, marker);
+      (pin.kind === "school" ? schoolClusters : storeClusters).addLayer(marker);
+    });
+    setLayer(schoolClusters, shown.some((pin) => pin.kind === "school"));
+    setLayer(storeClusters, shown.some((pin) => pin.kind === "store"));
+    const schoolCount = shown.filter((pin) => pin.kind === "school").length;
+    const storeCount = shown.length - schoolCount;
+    const bits = [];
+    if (layersOn.schools || query) bits.push(schoolCount + (schoolCount === 1 ? " school" : " schools"));
+    if (layersOn.stores || query) bits.push(storeCount + (storeCount === 1 ? " amenity" : " amenities"));
+    countEl.textContent = bits.join(" · ");
+  }
+
+  function pill(label, color) {
+    return `<span class="pill" style="--c:${color};--on:${inkFor(color)}">${escapeHtml(label)}</span>`;
+  }
+  function countyPhrase(value) {
+    const names = String(value || "").split(", ").filter(Boolean);
+    if (!names.length) return "";
+    if (names.length === 1) return names[0] + " County";
+    return names.slice(0, -1).join(", ") + " and " + names[names.length - 1] + " Counties";
+  }
+  function closeButton() {
+    return `<button type="button" class="close-bar" data-close>Close</button>`;
+  }
+  function pinHtml(pin) {
+    if (pin.kind === "school") {
+      const color = pin.sector === "private" ? "#8c3a4b" : "#1f4b99";
+      const sector = pin.sector === "private" ? "Private" : (pin.charter ? "Public charter" : "Public");
+      const where = [pin.city, pin.county ? pin.county + " County" : ""].filter(Boolean).join(" · ");
+      const estimate = pin.level_source === "name"
+        ? `<p class="hint">Grade level is estimated from the school name.</p>`
+        : "";
+      const bandPills = schoolBands(pin).map((band) => pill(LEVEL_LABEL[band] || band, "#241c16")).join("");
+      return `
+        <div class="sheet-top"><div>
+          <p class="eyebrow">${pill(sector, color)}${bandPills}</p>
+          <h2 id="sheetTitle">${escapeHtml(pin.name)}</h2>
+        </div></div>
+        ${pin.grades ? `<p class="note">Grades ${escapeHtml(pin.grades)}</p>` : ""}
+        ${pin.district ? `<p class="area">${escapeHtml(pin.district)}</p>` : ""}
+        ${where ? `<p class="area">${escapeHtml(where)}</p>` : ""}
+        ${pin.address ? `<p class="addr">${escapeHtml(pin.address)}</p>` : ""}
+        ${estimate}
+        ${closeButton()}`;
+    }
+    const info = brandInfo(pin);
+    const where = [pin.address, pin.city, pin.county ? pin.county + " County" : ""].filter(Boolean).join(" · ");
+    return `
+      <div class="sheet-top"><div>
+        <p class="eyebrow">${pill(info.label, info.color)}${pin.brand && pin.brand !== categoryInfo(pin.category).label ? pill(categoryInfo(pin.category).label, "#241c16") : ""}</p>
+        <h2 id="sheetTitle">${escapeHtml(pin.name)}</h2>
+      </div></div>
+      ${where ? `<p class="addr">${escapeHtml(where)}</p>` : ""}
+      ${closeButton()}`;
+  }
+  function areaHtml(group, feature) {
+    const props = feature.properties;
+    if (group === "suburbs") {
+      return `
+        <div class="sheet-top"><div>
+          <p class="eyebrow">${pill(props.kind || "Place", suburbColor(props.name))}</p>
+          <h2 id="sheetTitle">${escapeHtml(props.name)}</h2>
+        </div></div>
+        ${props.counties ? `<p class="note">${escapeHtml(countyPhrase(props.counties))}</p>` : ""}
+        <p class="hint">City and town limits from the Census. A place can sit in more than one county.</p>
+        ${closeButton()}`;
+    }
+    if (group === "counties") {
+      return `
+        <div class="sheet-top"><div>
+          <p class="eyebrow">${pill("County", "#3f372f")}</p>
+          <h2 id="sheetTitle">${escapeHtml(props.name)}</h2>
+        </div></div>
+        <p class="hint">The whole county is shown when the 50-mile ring touches it.</p>
+        ${closeButton()}`;
+    }
+    return `
+      <div class="sheet-top"><div>
+        <p class="eyebrow">${pill(props.kind || "District", "#1f4b99")}</p>
+        <h2 id="sheetTitle">${escapeHtml(props.name)}</h2>
+      </div></div>
+      ${props.grades ? `<p class="note">Grades ${escapeHtml(props.grades)}</p>` : ""}
+      <p class="hint">${escapeHtml(meta.district_note)}</p>
+      ${closeButton()}`;
+  }
+  function showSheet(html) {
+    closeKey();
+    sheetBody.innerHTML = html;
+    sheetEl.hidden = false;
+    document.getElementById("listBtn").setAttribute("aria-pressed", sheetEl.dataset.mode === "list" ? "true" : "false");
+  }
+  function closeSheet() {
+    sheetEl.hidden = true;
+    sheetEl.dataset.mode = "";
+    document.getElementById("listBtn").setAttribute("aria-pressed", "false");
+    if (selected) {
+      selected = null;
+      renderPins();
+    }
+  }
+  function openPin(pin, fly) {
+    selected = pin;
+    selectedArea = "";
+    syncPolygons();
+    const marker = markerById.get(pin.kind + ":" + pin.id);
+    if (marker) marker.setIcon(pinIcon(pin, true));
+    sheetEl.dataset.mode = "pin";
+    showSheet(pinHtml(pin));
+    if (!fly) return;
+    const zoom = Math.max(map.getZoom(), 15);
+    const point = map.project([pin.lat, pin.lng], zoom);
+    point.y += (sheetEl.offsetHeight || 240) / 2;
+    map.flyTo(map.unproject(point, zoom), zoom, { duration: 0.45 });
+  }
+  function findAreaLayer(group, name) {
+    const groupLayer = group === "suburbs" ? suburbLayer : group === "counties" ? countyLayer : districtLayer;
+    let found = null;
+    groupLayer.eachLayer((candidate) => {
+      if (candidate.feature && candidate.feature.properties.name === name) found = candidate;
+    });
+    return found;
+  }
+  function openArea(group, feature, layer) {
+    if (!layer) layer = findAreaLayer(group, feature.properties.name);
+    if (selected) selected = null;
+    layersOn[group] = true;
+    selectedArea = group + ":" + feature.properties.name;
+    paintToggles();
+    syncPolygons();
+    renderPins();
+    persist();
+    if (layer && layer.bringToFront) layer.bringToFront();
+    if (layer && layer.getBounds) {
+      map.fitBounds(layer.getBounds(), { padding: [28, 28], maxZoom: 13 });
+    }
+    sheetEl.dataset.mode = "area";
+    showSheet(areaHtml(group, feature));
+  }
+  function openList() {
+    const shown = visiblePins();
+    const areas = [
+      ...areaFeatures(places, "suburbs"),
+      ...areaFeatures(counties, "counties"),
+      ...areaFeatures(districts, "districts")
+    ];
+    const cap = 200;
+    const rows = shown.slice(0, cap).map((pin) => {
+      const info = pin.kind === "school"
+        ? {
+            color: pin.sector === "private" ? "#8c3a4b" : "#1f4b99",
+            label: (pin.sector === "private" ? "Private" : "Public") + (pin.grades ? " · grades " + pin.grades : " " + (LEVEL_LABEL[pin.level] || ""))
+          }
+        : { color: brandInfo(pin).color, label: brandInfo(pin).label };
+      const where = [pin.city, pin.county].filter(Boolean).join(", ");
+      const shape = pin.kind === "school" ? pin.level : "round";
+      return `<li><button type="button" data-pin="${escapeHtml(pin.kind + ":" + pin.id)}">
+        <span class="mark ${shape}" style="--c:${info.color}"></span>
+        <span class="name">${escapeHtml(pin.name)}</span>
+        <span class="meta">${escapeHtml(info.label)}${where ? " · " + escapeHtml(where) : ""}</span>
+      </button></li>`;
+    }).join("");
+    const areaRows = areas.slice(0, 40).map(({ group, feature }) => {
+      const label = group === "suburbs" ? feature.properties.kind : group === "counties" ? "County" : "District";
+      return `<li><button type="button" data-area="${escapeHtml(group + ":" + feature.properties.name)}">
+        <span class="mark round" style="--c:${group === "districts" ? "#1f4b99" : "#6d6258"}"></span>
+        <span class="name">${escapeHtml(feature.properties.name)}</span>
+        <span class="meta">${escapeHtml(label)}</span>
+      </button></li>`;
+    }).join("");
+    const extra = shown.length > cap ? `<p class="hint">Showing ${cap} of ${shown.length}. Search to narrow the list.</p>` : "";
+    const empty = shown.length || areas.length ? "" : `<li><p class="hint">Nothing matches.</p></li>`;
+    sheetEl.dataset.mode = "list";
+    showSheet(`
+      <div class="sheet-top"><div>
+        <h2 id="sheetTitle">${query ? "Results" : "On the map"}</h2>
+        <p class="hint">${query ? "Matching “" + escapeHtml(query.trim()) + "”." : "Schools and amenities that are turned on."}</p>
+      </div></div>
+      <ul class="spot-list">${areaRows}${rows}${empty}</ul>
+      ${extra}
+      ${closeButton()}`);
+  }
+
+  function renderChips() {
+    const school = [
+      ...LEVELS.map(([id, label]) => chipButton(id, label, "#241c16", levels.has(id), id)),
+      ...SECTORS.map(([id, label, color]) => chipButton(id, label, color, sectors.has(id), "dot"))
+    ];
+    schoolChips.innerHTML = school.join("");
+    storeChips.hidden = !layersOn.stores;
+    storeChips.innerHTML = CATEGORIES.map(([id, label, color]) => chipButton(id, label, color, categories.has(id), "dot")).join("");
+  }
+  function chipButton(id, label, color, pressed, shape) {
+    return `<button type="button" class="chip" data-chip="${escapeHtml(id)}" aria-pressed="${pressed}" style="--c:${color};--on:${inkFor(color)}"><span class="swatch ${shape}"></span>${escapeHtml(label)}</button>`;
+  }
+  function paintToggles() {
+    document.getElementById("suburbsBtn").setAttribute("aria-pressed", String(layersOn.suburbs));
+    document.getElementById("countiesBtn").setAttribute("aria-pressed", String(layersOn.counties));
+    document.getElementById("districtsBtn").setAttribute("aria-pressed", String(layersOn.districts));
+    document.getElementById("schoolsBtn").setAttribute("aria-pressed", String(layersOn.schools));
+    document.getElementById("storesBtn").setAttribute("aria-pressed", String(layersOn.stores));
+    renderChips();
+  }
+  function persist() {
+    localStorage.setItem("bre-layers", JSON.stringify({
+      suburbs: layersOn.suburbs,
+      counties: layersOn.counties,
+      districts: layersOn.districts,
+      schools: layersOn.schools,
+      stores: layersOn.stores,
+      levels: [...levels],
+      sectors: [...sectors],
+      categories: [...categories]
+    }));
+  }
+  function refresh() {
+    paintToggles();
+    syncPolygons();
+    renderPins();
+    persist();
+  }
+  function toggleSet(set, id, turnOn) {
+    if (set.has(id)) set.delete(id);
+    else set.add(id);
+    if (turnOn) layersOn[turnOn] = true;
+    refresh();
+  }
+
+  function closeKey() {
+    legendEl.hidden = true;
+    document.getElementById("keyBtn").setAttribute("aria-pressed", "false");
+  }
+  function fitHome() {
+    map.fitBounds(ring.getBounds(), { padding: [16, 16] });
+  }
+  function placeChrome() {
+    document.getElementById("tools").style.top = (document.querySelector("header").offsetHeight + 10) + "px";
+  }
+
+  document.getElementById("districtNote").textContent = meta.district_note;
+  const brandRows = Object.entries(BRANDS).filter(([name]) => amenities.some((place) => place.brand === name));
+  document.getElementById("brandKey").innerHTML = brandRows.map(([name, [color, mark]]) =>
+    `<li><span class="pin store sample" style="--pin:${color};--ink:${inkFor(color)}">${escapeHtml(mark)}</span>${escapeHtml(name)}</li>`
+  ).join("");
+  document.getElementById("sourceNote").textContent = "Census places and counties, NCES school locations and districts, OpenStreetMap amenities.";
+
+  schoolChips.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-chip]");
+    if (!button) return;
+    const id = button.dataset.chip;
+    if (LEVELS.some(([level]) => level === id)) toggleSet(levels, id, "schools");
+    else toggleSet(sectors, id, "schools");
+  });
+  storeChips.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-chip]");
+    if (!button) return;
+    toggleSet(categories, button.dataset.chip, "stores");
+  });
+  document.getElementById("suburbsBtn").addEventListener("click", () => { layersOn.suburbs = !layersOn.suburbs; refresh(); });
+  document.getElementById("countiesBtn").addEventListener("click", () => { layersOn.counties = !layersOn.counties; refresh(); });
+  document.getElementById("districtsBtn").addEventListener("click", () => { layersOn.districts = !layersOn.districts; refresh(); });
+  document.getElementById("schoolsBtn").addEventListener("click", () => { layersOn.schools = !layersOn.schools; refresh(); });
+  document.getElementById("storesBtn").addEventListener("click", () => { layersOn.stores = !layersOn.stores; refresh(); });
+  document.getElementById("listBtn").addEventListener("click", () => {
+    if (!sheetEl.hidden && sheetEl.dataset.mode === "list") closeSheet();
+    else openList();
+  });
+  document.getElementById("keyBtn").addEventListener("click", () => {
+    if (!legendEl.hidden) { closeKey(); return; }
+    if (!sheetEl.hidden) closeSheet();
+    legendEl.hidden = false;
+    document.getElementById("keyBtn").setAttribute("aria-pressed", "true");
+  });
+  document.getElementById("home").addEventListener("click", () => {
+    closeSheet();
+    closeKey();
+    selectedArea = "";
+    syncPolygons();
+    fitHome();
+  });
+  document.getElementById("locate").addEventListener("click", () => {
+    map.locate({ setView: true, maxZoom: 14, enableHighAccuracy: true });
+  });
+  searchForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    searchInput.blur();
+    const first = visiblePins()[0] || areaFeatures(places, "suburbs")[0];
+    if (first && first.kind) openPin(first, true);
+    else if (first && first.feature) openArea(first.group, first.feature, null);
+  });
+  searchInput.addEventListener("input", () => {
+    searchClear.hidden = !searchInput.value;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      query = searchInput.value;
+      selected = null;
+      renderPins();
+      syncPolygons();
+    }, 140);
+  });
+  searchClear.addEventListener("click", () => {
+    searchInput.value = "";
+    searchClear.hidden = true;
+    query = "";
+    renderPins();
+    syncPolygons();
+    searchInput.focus();
+  });
+  sheetEl.addEventListener("click", (event) => {
+    if (event.target.closest("[data-close]")) {
+      closeSheet();
+      return;
+    }
+    const pinButton = event.target.closest("[data-pin]");
+    if (pinButton) {
+      const pin = pins.find((item) => item.kind + ":" + item.id === pinButton.dataset.pin);
+      if (pin) openPin(pin, true);
+      return;
+    }
+    const areaButton = event.target.closest("[data-area]");
+    if (!areaButton) return;
+    const [group, ...rest] = areaButton.dataset.area.split(":");
+    const name = rest.join(":");
+    const collection = group === "suburbs" ? places : group === "counties" ? counties : districts;
+    const feature = collection.features.find((item) => item.properties.name === name);
+    if (feature) openArea(group, feature, null);
+  });
+  map.on("click", () => {
+    if (!sheetEl.hidden) closeSheet();
+  });
+  map.on("locationfound", (event) => {
+    if (!me) {
+      me = L.circleMarker(event.latlng, {
+        pane: "me",
+        radius: 8,
+        color: "#fff",
+        weight: 3,
+        fillColor: "#2563eb",
+        fillOpacity: 1
+      }).addTo(map);
+    } else me.setLatLng(event.latlng);
+  });
+  map.on("locationerror", () => {
+    showToast("This browser did not share a location. You can still pan the map.");
+  });
+  map.on("zoomend", syncLabels);
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeSheet();
+      closeKey();
+    }
+  });
+  window.addEventListener("resize", placeChrome);
+  if (window.ResizeObserver) new ResizeObserver(placeChrome).observe(document.querySelector("header"));
+
+  refresh();
+  fitHome();
+  placeChrome();
+}
+
+function readSaved() {
+  try {
+    return JSON.parse(localStorage.getItem("bre-layers") || "{}");
+  } catch (error) {
+    return {};
+  }
+}
+
+function addStreets(map) {
+  const credit = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+  function raster() {
+    map.getContainer().classList.add("raster-streets");
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: credit
+    }).addTo(map);
+  }
+  let webgl = false;
+  try {
+    const canvas = document.createElement("canvas");
+    webgl = !!(canvas.getContext("webgl2") || canvas.getContext("webgl"));
+  } catch (error) {
+    webgl = false;
+  }
+  if (window.maplibregl && L.maplibreGL && webgl) {
+    const streets = L.maplibreGL({
+      style: "https://tiles.openfreemap.org/styles/positron",
+      attribution: '<a href="https://openfreemap.org">OpenFreeMap</a> ' + credit
+    }).addTo(map);
+    const gl = streets.getMaplibreMap();
+    let ready = false;
+    gl.on("load", () => {
+      ready = true;
+      (gl.getStyle().layers || [])
+        .filter((layer) => layer.id.startsWith("railway"))
+        .forEach((layer) => gl.setLayoutProperty(layer.id, "visibility", "none"));
+    });
+    gl.on("error", () => {
+      if (ready || map.getContainer().classList.contains("raster-streets")) return;
+      map.removeLayer(streets);
+      raster();
+    });
+  } else {
+    raster();
+  }
+}
+</script>
+</body>
+</html>

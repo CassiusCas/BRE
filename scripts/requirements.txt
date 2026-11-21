@@ -1,0 +1,5 @@
+osmium>=4.0
+pyproj>=3.6
+pyshp>=2.3
+requests>=2.31
+shapely>=2.0
