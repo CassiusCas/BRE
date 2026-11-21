@@ -2,6 +2,8 @@
 
 A phone-friendly map for house shopping around Birmingham, Alabama. It covers downtown and the surrounding 50 miles: suburb limits, counties, public school districts, school locations, and everyday amenities.
 
+The current map is on `main`. [STATUS.md](STATUS.md) is the record of what was merged on 21 November 2026, what is saved in git, and what is still open. The page is not published. There is no public web address yet.
+
 The page is one HTML file plus the data files in `data/`. The street map underneath loads from the internet. Pins and boundaries are saved in this project, the same way [new_york_map](https://github.com/CassiusCas/new_york_map) keeps its places on the page.
 
 ## Open it locally
