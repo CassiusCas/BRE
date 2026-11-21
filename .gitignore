@@ -1,3 +1,6 @@
-data/raw/
 __pycache__/
 .venv/
+raw/
+data/raw/
+*.zip
+.DS_Store

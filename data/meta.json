@@ -1,0 +1,68 @@
+{
+  "center": [
+    33.5207,
+    -86.8025
+  ],
+  "miles": 50,
+  "place": "Downtown Birmingham",
+  "places": 156,
+  "counties": [
+    "Bibb",
+    "Blount",
+    "Calhoun",
+    "Chilton",
+    "Clay",
+    "Coosa",
+    "Cullman",
+    "Etowah",
+    "Fayette",
+    "Jefferson",
+    "Marshall",
+    "Perry",
+    "Shelby",
+    "St. Clair",
+    "Talladega",
+    "Tuscaloosa",
+    "Walker",
+    "Winston"
+  ],
+  "districts": 40,
+  "district_kinds": {
+    "Unified": 40
+  },
+  "district_note": "All 40 districts in this circle are unified systems. One boundary is the public school system for that address, and it covers elementary, middle, and high school. Separate attendance zones inside a system are drawn by the district and are not in the national map.",
+  "schools": {
+    "public": 431,
+    "private": 92,
+    "by_level": {
+      "elementary": 247,
+      "middle": 86,
+      "high": 118,
+      "other": 72
+    }
+  },
+  "amenities": {
+    "auto_parts": 103,
+    "farm_supply": 14,
+    "fire_station": 145,
+    "fuel": 642,
+    "general_merchandise": 8,
+    "grocery_full": 188,
+    "grocery_small": 148,
+    "hardware_major": 33,
+    "hardware_minor": 32,
+    "hospital": 32,
+    "lumber": 15,
+    "pharmacy": 118,
+    "propane": 1,
+    "urgent_care": 24,
+    "warehouse_club": 6
+  },
+  "sources": {
+    "places": "US Census TIGER places, Alabama",
+    "counties": "US Census TIGER counties",
+    "districts": "NCES EDGE school district boundaries, 2024-25",
+    "schools": "NCES EDGE public school locations 2024-25, private school locations 2023-24, CCD directory",
+    "amenities": "OpenStreetMap, classified with the project_hail_marry brand list"
+  }
+}

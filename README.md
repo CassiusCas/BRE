@@ -1,27 +1,48 @@
 # Birmingham
 
-A phone map of Birmingham and the 50 miles around it, for a first look while house shopping. It follows the same shape as the New York map: one page, a street map underneath, and overlays you turn on and off. There is no server to run.
+A phone-friendly map for house shopping around Birmingham, Alabama. It covers downtown and the surrounding 50 miles: suburb limits, counties, public school districts, school locations, and everyday amenities.
 
-Open the published page in Safari or Chrome, pinch to zoom, and tap an area. The street names load when the phone is online.
+The page is one HTML file plus the data files in `data/`. The street map underneath loads from the internet. Pins and boundaries are saved in this project, the same way [new_york_map](https://github.com/CassiusCas/new_york_map) keeps its places on the page.
 
-## What you can turn on
+## Open it locally
 
-- **Suburbs** draws city limits and census-designated places inside the circle: Helena, Hoover, Trussville, Homewood, Mountain Brook, and the rest. A place that only partly falls inside the 50 miles is cut at the circle.
-- **Counties** draws the counties that meet that circle, including Jefferson and Shelby.
-- **Districts** draws public school district boundaries for the same area, with the grade span from the district file (for example KG–12).
+From this folder:
 
-The three toggles are separate. The phone remembers which ones you left on. Search matches the name of whatever is turned on. **List** opens that same set. **Near me** uses the phone’s location. Tap the title to zoom back out to the 50-mile circle.
+```bash
+python3 -m http.server 8765
+```
 
-County lines are visible and are not clickable, so a tap still lands on the suburb or the school district underneath. When both of those are on, the tap opens the school district. Turn Districts off to open the suburb instead.
+Then open http://127.0.0.1:8765
 
-## Where the lines come from
+The title zooms back out to the 50-mile ring. **Near me** uses the browser’s location. Search keeps every word: `hoover elementary`, `private high`, `publix`, `shelby`.
 
-These are the boundary layers from the land-analysis work, clipped to 50 miles of Birmingham City Hall and simplified so the page stays small.
+## Layers
 
-- Places and counties: U.S. Census TIGER/Line 2025.
-- School districts: NCES EDGE composite district polygons, 2024–25.
-- Streets: [OpenFreeMap](https://openfreemap.org). Map data is © OpenStreetMap contributors.
+- **Suburbs** are Census cities, towns, and census-designated places that meet the circle. That includes Helena, Hoover, Trussville, Homewood, Mountain Brook, Vestavia Hills, and the smaller places around them. Names appear as you zoom in.
+- **Counties** are a separate overlay. A county is included when the 50-mile circle touches it, and the whole county is drawn. The lines are visible and are not clickable, so a tap still lands on the suburb or the school district underneath. Search or the list still opens a county by name.
+- **Districts** are the public school system boundaries from NCES. In this circle those systems are unified: one boundary covers elementary, middle, and high school. Alabama does not publish separate attendance zones for each grade in the national file. Those zones are drawn by each district. The school pins are the grade-level view. When suburbs and districts are both on, a tap opens the district. Turn Districts off to open the suburb.
+- **Schools** are NCES locations. A circle is elementary, a square is middle, and a diamond is high school. The ring is a combined school. A school still shows under every age group it teaches, so a 7–12 high school stays a diamond and also appears when Middle is on. Around Birmingham, 6th grade stays with elementary when the school stops at 6th. Blue is public and burgundy is private. The chips under the search box turn levels and public or private on and off.
+- **Amenities** use the store list from project_hail_marry. Publix, Walmart, Costco, and the other named chains each have their own color and letters. Hospitals, pharmacies, hardware stores, and the rest share a symbol per category. Fuel, propane, auto parts, lumber, and fire stations start off so they do not cover the map.
 
-`scripts/build_layers.py` rebuilds `data/suburbs.geojson`, `data/counties.geojson`, `data/districts.geojson`, and `data/radius.geojson`. The raw downloads stay out of git.
+## Where the data comes from
 
-School test scores, spending, flood, and parcels from that project are not on this map. This page is the boundary view you can open on a phone.
+| Layer | Source |
+| --- | --- |
+| Suburbs and counties | US Census TIGER 2025 |
+| School districts | NCES EDGE school district boundaries, 2024–25 |
+| Public schools | NCES EDGE locations, 2024–25, with grade level from the CCD directory |
+| Private schools | NCES EDGE locations, 2023–24 |
+| Amenities | OpenStreetMap, classified with the Hail Mary brand list |
+
+Hail Mary’s processed files are not in that repository, so this map rebuilds the same public layers for the 50-mile circle. A few Birmingham grocers that are not in the Hail Mary brand table are included: Western Supermarket, Fresh Value, Whole Foods, Trader Joe’s, Sprouts, and The Fresh Market. School scores, flood layers, and parcels are not on this map.
+
+The center is Linn Park in downtown Birmingham. Rebuild the files with:
+
+```bash
+python3 -m pip install -r scripts/requirements.txt
+python3 scripts/build_layers.py
+```
+
+Downloads are cached in `raw/`, which is not committed.
+
+Street map data is © OpenStreetMap contributors, via [OpenFreeMap](https://openfreemap.org).
