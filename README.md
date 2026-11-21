@@ -19,8 +19,8 @@ The title zooms back out to the 50-mile ring. **Near me** uses the browser’s l
 ## Layers
 
 - **Suburbs** are Census cities, towns, and census-designated places that meet the circle. That includes Helena, Hoover, Trussville, Homewood, Mountain Brook, Vestavia Hills, and the smaller places around them. Names appear as you zoom in.
-- **Counties** are a separate overlay. A county is included when the 50-mile circle touches it, and the whole county is drawn.
-- **Districts** are the public school system boundaries from NCES. In this circle those systems are unified: one boundary covers elementary, middle, and high school. Alabama does not publish separate attendance zones for each grade in the national file. Those zones are drawn by each district. The school pins are the grade-level view.
+- **Counties** are a separate overlay. A county is included when the 50-mile circle touches it, and the whole county is drawn. The lines are visible and are not clickable, so a tap still lands on the suburb or the school district underneath. Search or the list still opens a county by name.
+- **Districts** are the public school system boundaries from NCES. In this circle those systems are unified: one boundary covers elementary, middle, and high school. Alabama does not publish separate attendance zones for each grade in the national file. Those zones are drawn by each district. The school pins are the grade-level view. When suburbs and districts are both on, a tap opens the district. Turn Districts off to open the suburb.
 - **Schools** are NCES locations. A circle is elementary, a square is middle, and a diamond is high school. The ring is a combined school. A school still shows under every age group it teaches, so a 7–12 high school stays a diamond and also appears when Middle is on. Around Birmingham, 6th grade stays with elementary when the school stops at 6th. Blue is public and burgundy is private. The chips under the search box turn levels and public or private on and off.
 - **Amenities** use the store list from project_hail_marry. Publix, Walmart, Costco, and the other named chains each have their own color and letters. Hospitals, pharmacies, hardware stores, and the rest share a symbol per category. Fuel, propane, auto parts, lumber, and fire stations start off so they do not cover the map.
 
@@ -34,7 +34,7 @@ The title zooms back out to the 50-mile ring. **Near me** uses the browser’s l
 | Private schools | NCES EDGE locations, 2023–24 |
 | Amenities | OpenStreetMap, classified with the Hail Mary brand list |
 
-Hail Mary’s processed files are not in that repository, so this map rebuilds the same public layers for the 50-mile circle. A few Birmingham grocers that are not in the Hail Mary brand table are included: Western Supermarket, Fresh Value, Whole Foods, Trader Joe’s, Sprouts, and The Fresh Market.
+Hail Mary’s processed files are not in that repository, so this map rebuilds the same public layers for the 50-mile circle. A few Birmingham grocers that are not in the Hail Mary brand table are included: Western Supermarket, Fresh Value, Whole Foods, Trader Joe’s, Sprouts, and The Fresh Market. School scores, flood layers, and parcels are not on this map.
 
 The center is Linn Park in downtown Birmingham. Rebuild the files with:
 
