@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Birmingham">
+<meta name="theme-color" content="#f6f3ee">
+<title>Birmingham</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+<style>
+  :root {
+    --ink: #241c16;
+    --muted: #6d6258;
+    --paper: #f6f3ee;
+    --line: #e4ddd4;
+    --card: #fffdf9;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    overscroll-behavior: none;
+  }
+  body {
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    flex: none;
+    padding: calc(10px + env(safe-area-inset-top)) 14px 10px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    z-index: 20;
+  }
+  .title-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  h1 { margin: 0; font-family: Georgia, Palatino, serif; font-size: 22px; font-weight: 600; }
+  h1 button { padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
+  #count { margin: 0; color: var(--muted); font-size: 13px; }
+  #search { position: relative; margin: 0 0 8px; }
+  #search input {
+    width: 100%;
+    height: 40px;
+    padding: 0 72px 0 14px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font: 500 15px/1 inherit;
+  }
+  #search input:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
+  #searchClear {
+    position: absolute;
+    right: 6px;
+    top: 6px;
+    height: 28px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--paper);
+    font: 650 13px/1 inherit;
+    cursor: pointer;
+  }
+  #map { flex: 1; min-height: 0; background: #e7e1d8; }
+  #map .leaflet-container { font: inherit; }
+  #tools {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    z-index: 500;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    pointer-events: none;
+  }
+  #tools button, .sheet-row {
+    pointer-events: auto;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    border-radius: 999px;
+    height: 36px;
+    padding: 0 12px;
+    font: 650 13px/1 inherit;
+    cursor: pointer;
+  }
+  #tools button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  #sheet {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    z-index: 600;
+    max-height: 55dvh;
+    overflow: auto;
+    background: var(--card);
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 30px rgba(36, 28, 22, 0.16);
+    padding: 8px 16px calc(16px + env(safe-area-inset-bottom));
+  }
+  #sheet h2 { margin: 8px 0 4px; font-size: 20px; font-family: Georgia, Palatino, serif; }
+  #sheet p { margin: 0 0 8px; color: var(--muted); font-size: 14px; }
+  .sheet-row {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border-radius: 12px;
+    height: auto;
+    padding: 10px 12px;
+    margin: 0 0 6px;
+  }
+  .sheet-row small { display: block; color: var(--muted); font-weight: 500; margin-top: 3px; }
+  #toast {
+    position: absolute;
+    left: 50%;
+    bottom: calc(58px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    z-index: 700;
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+  .area-label span {
+    display: inline-block;
+    padding: 1px 4px;
+    background: rgba(255, 253, 249, 0.88);
+    border-radius: 4px;
+    font: 650 11px/1.2 "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    color: #241c16;
+    white-space: nowrap;
+  }
+  #offline { padding: 24px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="title-row">
+    <h1><button type="button" id="home" title="Show the 50 miles around Birmingham">Birmingham</button></h1>
+    <p id="count" aria-live="polite"></p>
+  </div>
+  <form id="search" role="search">
+    <input id="searchInput" type="search" placeholder="Search suburb, county, or district" autocomplete="off" enterkeyhint="search">
+    <button type="button" id="searchClear" hidden>Clear</button>
+  </form>
+</header>
+<div id="map" role="application" aria-label="Map of Birmingham and the surrounding 50 miles"></div>
+<div id="tools">
+  <button type="button" id="locate">Near me</button>
+  <button type="button" id="suburbsBtn" aria-pressed="true">Suburbs</button>
+  <button type="button" id="countiesBtn" aria-pressed="false">Counties</button>
+  <button type="button" id="districtsBtn" aria-pressed="false">Districts</button>
+  <button type="button" id="listBtn" aria-pressed="false" aria-expanded="false" aria-controls="sheet">List</button>
+</div>
+<section id="sheet" hidden>
+  <div id="sheetBody"></div>
+</section>
+<div id="toast" hidden></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.3/leaflet-maplibre-gl.js"></script>
+<script>
+const CENTER = [33.5207, -86.8104];
+const LAYERS = [
+  { id: "suburbs", label: "Suburb", file: "data/suburbs.geojson", button: "suburbsBtn", storage: "bre-suburbs", fill: true, weight: 1.25 },
+  { id: "counties", label: "County", file: "data/counties.geojson", button: "countiesBtn", storage: "bre-counties", fill: false, weight: 2.25 },
+  { id: "districts", label: "District", file: "data/districts.geojson", button: "districtsBtn", storage: "bre-districts", fill: true, weight: 1.5 }
+];
+const PALETTE = ["#c4b49a", "#8fa887", "#d08c74", "#7f9eae", "#c7a3bc", "#d4c06a", "#9bb7a3", "#b7a48e"];
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+function colorFor(name) {
+  let hash = 0;
+  for (const ch of name) hash = (hash * 33 + ch.charCodeAt(0)) >>> 0;
+  return PALETTE[hash % PALETTE.length];
+}
+function storedOn(key, fallback) {
+  try {
+    const value = localStorage.getItem(key);
+    if (value === "on") return true;
+    if (value === "off") return false;
+  } catch (error) { /* storage may be blocked */ }
+  return fallback;
+}
+
+if (!window.L) {
+  document.getElementById("map").innerHTML = "<p id=\"offline\">The street map did not load. Open this page again when the phone has a connection.</p>";
+} else {
+  const map = L.map("map", { zoomControl: true, preferCanvas: true, center: CENTER, zoom: 9 });
+  map.createPane("counties");
+  map.getPane("counties").style.zIndex = 360;
+  map.createPane("suburbs");
+  map.getPane("suburbs").style.zIndex = 380;
+  map.createPane("districts");
+  map.getPane("districts").style.zIndex = 400;
+  map.createPane("radius");
+  map.getPane("radius").style.zIndex = 420;
+  map.createPane("names");
+  map.getPane("names").style.zIndex = 450;
+
+  const OSM_CREDIT = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+  function useRasterStreets() {
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: OSM_CREDIT
+    }).addTo(map);
+  }
+  function hasWebGL() {
+    try {
+      const canvas = document.createElement("canvas");
+      return !!(canvas.getContext("webgl2") || canvas.getContext("webgl"));
+    } catch (error) {
+      return false;
+    }
+  }
+  if (window.maplibregl && L.maplibreGL && hasWebGL()) {
+    const streets = L.maplibreGL({
+      style: "https://tiles.openfreemap.org/styles/positron",
+      attribution: '<a href="https://openfreemap.org">OpenFreeMap</a> ' + OSM_CREDIT
+    }).addTo(map);
+    let styleReady = false;
+    streets.getMaplibreMap().on("load", () => { styleReady = true; });
+    streets.getMaplibreMap().on("error", () => {
+      if (styleReady) return;
+      map.removeLayer(streets);
+      useRasterStreets();
+    });
+  } else {
+    useRasterStreets();
+  }
+
+  const state = {};
+  LAYERS.forEach((spec) => {
+    state[spec.id] = {
+      spec,
+      on: storedOn(spec.storage, spec.id === "suburbs"),
+      features: [],
+      group: L.layerGroup(),
+      names: L.layerGroup()
+    };
+  });
+
+  const searchInput = document.getElementById("searchInput");
+  const searchClear = document.getElementById("searchClear");
+  const count = document.getElementById("count");
+  const sheet = document.getElementById("sheet");
+  const sheetBody = document.getElementById("sheetBody");
+  const listBtn = document.getElementById("listBtn");
+  let query = "";
+  let toastTimer = 0;
+  let me = null;
+
+  function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.hidden = true; }, 2800);
+  }
+  function detail(feature, spec) {
+    const props = feature.properties;
+    if (spec.id === "suburbs") return props.kind === "CDP" ? "Census designated place" : "City or town";
+    if (spec.id === "counties") return "County";
+    return props.grades ? `Grades ${props.grades}` : "School district";
+  }
+  function matches(feature) {
+    if (!query) return true;
+    const props = feature.properties;
+    const hay = `${props.name} ${props.label || ""} ${props.grades || ""}`.toLowerCase();
+    return query.split(/\s+/).every((word) => hay.includes(word));
+  }
+  function visible() {
+    const rows = [];
+    LAYERS.forEach((spec) => {
+      const layer = state[spec.id];
+      if (!layer.on) return;
+      layer.features.forEach((feature) => {
+        if (matches(feature)) rows.push({ feature, spec });
+      });
+    });
+    rows.sort((a, b) => a.feature.properties.name.localeCompare(b.feature.properties.name));
+    return rows;
+  }
+  function styleFor(spec, name, on) {
+    const color = spec.id === "counties" ? "#8c3b2a" : spec.id === "districts" ? "#2f5d62" : colorFor(name);
+    return {
+      color: spec.id === "suburbs" ? "#5c5146" : color,
+      weight: on ? spec.weight + 0.75 : spec.weight,
+      opacity: on ? 0.95 : 0.75,
+      fill: spec.fill,
+      fillColor: color,
+      fillOpacity: on ? 0.38 : 0.22
+    };
+  }
+  function openFeature(feature, spec) {
+    const props = feature.properties;
+    sheet.hidden = false;
+    listBtn.setAttribute("aria-expanded", "true");
+    sheetBody.innerHTML = `
+      <h2>${escapeHtml(props.label || props.name)}</h2>
+      <p>${escapeHtml(detail(feature, spec))}</p>`;
+    const bounds = L.geoJSON(feature).getBounds();
+    if (bounds.isValid()) map.fitBounds(bounds.pad(0.2), { maxZoom: 13 });
+  }
+  function draw() {
+    const rows = visible();
+    const wanted = new Set(rows.map((row) => row.spec.id + row.feature.properties.geoid));
+    LAYERS.forEach((spec) => {
+      const layer = state[spec.id];
+      layer.group.clearLayers();
+      layer.names.clearLayers();
+      document.getElementById(spec.button).setAttribute("aria-pressed", layer.on ? "true" : "false");
+      if (!layer.on) return;
+      layer.features.forEach((feature) => {
+        const key = spec.id + feature.properties.geoid;
+        if (query && !wanted.has(key)) return;
+        const shape = L.geoJSON(feature, {
+          pane: spec.id,
+          interactive: spec.id !== "counties",
+          style: styleFor(spec, feature.properties.name, Boolean(query))
+        });
+        shape.on("click", (event) => {
+          L.DomEvent.stopPropagation(event);
+          openFeature(feature, spec);
+        });
+        shape.addTo(layer.group);
+        const center = shape.getBounds().getCenter();
+        L.marker(center, {
+          pane: "names",
+          interactive: false,
+          keyboard: false,
+          icon: L.divIcon({
+            className: "area-label",
+            html: `<span>${escapeHtml(feature.properties.name)}</span>`,
+            iconSize: [120, 18],
+            iconAnchor: [60, 9]
+          })
+        }).addTo(layer.names);
+      });
+    });
+    const zoom = map.getZoom();
+    LAYERS.forEach((spec) => {
+      const layer = state[spec.id];
+      const showNames = layer.on && (spec.id === "counties" ? zoom < 11 : zoom >= 11);
+      if (showNames) layer.names.addTo(map);
+      else if (map.hasLayer(layer.names)) map.removeLayer(layer.names);
+      if (layer.on) layer.group.addTo(map);
+      else if (map.hasLayer(layer.group)) map.removeLayer(layer.group);
+    });
+    const noun = rows.length === 1 ? "area" : "areas";
+    count.textContent = `${rows.length} ${noun}`;
+  }
+  function closeSheet() {
+    sheet.hidden = true;
+    listBtn.setAttribute("aria-pressed", "false");
+    listBtn.setAttribute("aria-expanded", "false");
+  }
+  function openList() {
+    const rows = visible();
+    sheet.hidden = false;
+    listBtn.setAttribute("aria-pressed", "true");
+    listBtn.setAttribute("aria-expanded", "true");
+    const body = rows.map((row) => `
+      <button type="button" class="sheet-row" data-id="${escapeHtml(row.spec.id + row.feature.properties.geoid)}">
+        ${escapeHtml(row.feature.properties.name)}
+        <small>${escapeHtml(row.spec.label)} · ${escapeHtml(detail(row.feature, row.spec))}</small>
+      </button>`).join("");
+    sheetBody.innerHTML = `<h2>${query ? "Matches" : "On the map"}</h2>${body || "<p>Nothing matches.</p>"}`;
+    sheetBody.querySelectorAll(".sheet-row").forEach((button) => {
+      button.addEventListener("click", () => {
+        const row = rows.find((item) => item.spec.id + item.feature.properties.geoid === button.dataset.id);
+        if (row) openFeature(row.feature, row.spec);
+      });
+    });
+  }
+  function toggleLayer(spec) {
+    const layer = state[spec.id];
+    layer.on = !layer.on;
+    try { localStorage.setItem(spec.storage, layer.on ? "on" : "off"); } catch (error) { /* storage may be blocked */ }
+    draw();
+  }
+  function fitCircle(layer) {
+    const bounds = layer.getBounds();
+    if (bounds.isValid()) map.fitBounds(bounds.pad(0.02));
+  }
+
+  map.on("zoomend", draw);
+  map.on("click", closeSheet);
+  document.getElementById("home").addEventListener("click", () => {
+    query = "";
+    searchInput.value = "";
+    searchClear.hidden = true;
+    closeSheet();
+    if (state.radius) fitCircle(state.radius);
+    draw();
+  });
+  document.getElementById("search").addEventListener("submit", (event) => {
+    event.preventDefault();
+    searchInput.blur();
+  });
+  searchInput.addEventListener("input", () => {
+    query = searchInput.value.trim().toLowerCase();
+    searchClear.hidden = !query;
+    draw();
+  });
+  searchClear.addEventListener("click", () => {
+    query = "";
+    searchInput.value = "";
+    searchClear.hidden = true;
+    draw();
+    searchInput.focus();
+  });
+  document.getElementById("locate").addEventListener("click", () => {
+    if (!navigator.geolocation) {
+      showToast("This browser has no location.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition((position) => {
+      const latlng = [position.coords.latitude, position.coords.longitude];
+      if (me) map.removeLayer(me);
+      me = L.circleMarker(latlng, { radius: 8, color: "#241c16", weight: 2, fillColor: "#d08c74", fillOpacity: 1 }).addTo(map);
+      map.setView(latlng, Math.max(map.getZoom(), 12));
+    }, () => showToast("Location is off for this page."));
+  });
+  listBtn.addEventListener("click", () => {
+    if (!sheet.hidden && listBtn.getAttribute("aria-pressed") === "true") closeSheet();
+    else openList();
+  });
+  LAYERS.forEach((spec) => {
+    document.getElementById(spec.button).addEventListener("click", () => toggleLayer(spec));
+  });
+
+  Promise.all([
+    fetch("data/radius.geojson").then((response) => response.json()),
+    ...LAYERS.map((spec) => fetch(spec.file).then((response) => response.json()))
+  ]).then(([radius, ...collections]) => {
+    const ring = L.geoJSON(radius, {
+      pane: "radius",
+      interactive: false,
+      style: { color: "#241c16", weight: 1.5, dashArray: "6 6", opacity: 0.7, fill: false }
+    }).addTo(map);
+    state.radius = ring;
+    collections.forEach((collection, index) => {
+      state[LAYERS[index].id].features = collection.features;
+    });
+    fitCircle(ring);
+    draw();
+  }).catch((error) => {
+    console.error(error);
+    showToast("The area outlines did not load.");
+  });
+}
+</script>
+</body>
+</html>
