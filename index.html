@@ -19,6 +19,7 @@
     --card: #fffdf9;
     --public: #1f4b99;
     --private: #8c3a4b;
+    --me: #2563eb;
   }
   * { box-sizing: border-box; }
   html, body {
@@ -168,7 +169,7 @@
     background: #e6e2da;
   }
   .leaflet-container { font-family: inherit; background: #e6e2da; }
-  .leaflet-counties-pane { pointer-events: none; }
+  .leaflet-counties-pane, .leaflet-meHalo-pane, .leaflet-me-pane { pointer-events: none; }
   .raster-streets .leaflet-tile-pane { filter: grayscale(0.85) brightness(1.06) contrast(0.9); }
   .leaflet-top.leaflet-right { top: 10px; }
   .leaflet-control-attribution {
@@ -296,6 +297,82 @@
     touch-action: manipulation;
   }
   #tools button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+  #tools #locate {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 38px;
+    padding: 0 13px 0 11px;
+  }
+  #tools #locate .locate-icon {
+    flex: none;
+    color: var(--me);
+  }
+  #tools #locate .locate-core { opacity: 0.35; }
+  #tools #locate[data-state="locating"] .locate-core,
+  #tools #locate[data-state="following"] .locate-core,
+  #tools #locate[data-state="offcenter"] .locate-core { opacity: 1; }
+  #tools #locate[data-state="locating"] .locate-icon {
+    animation: locatePulse 1.1s ease-in-out infinite;
+  }
+  #tools #locate[data-state="following"] {
+    background: var(--me);
+    color: #fff;
+  }
+  #tools #locate[data-state="following"] .locate-icon { color: #fff; }
+  #tools #locate[data-state="offcenter"] {
+    background: var(--card);
+    color: var(--me);
+    box-shadow: inset 0 0 0 2px var(--me), 0 2px 12px rgba(36, 28, 22, 0.16);
+  }
+  .me-icon {
+    background: none;
+    border: 0;
+    pointer-events: auto;
+  }
+  .me-pin {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .me-halo {
+    position: absolute;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(37, 99, 235, 0.24);
+    animation: mePulse 2.2s ease-out infinite;
+    pointer-events: none;
+  }
+  .me-dot {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--me);
+    border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(36, 28, 22, 0.35);
+  }
+  .me-pin.is-on .me-dot {
+    outline: 3px solid var(--me);
+    outline-offset: 2px;
+  }
+  @keyframes mePulse {
+    0% { transform: scale(0.55); opacity: 0.9; }
+    75% { transform: scale(1.25); opacity: 0; }
+    100% { transform: scale(1.25); opacity: 0; }
+  }
+  @keyframes locatePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.88); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .me-halo, #tools #locate[data-state="locating"] .locate-icon { animation: none; }
+  }
   #legend {
     position: absolute;
     z-index: 500;
@@ -352,6 +429,29 @@
     box-shadow: 0 -8px 30px rgba(36, 28, 22, 0.18);
     padding: 8px 16px calc(16px + env(safe-area-inset-bottom));
   }
+  .secondary-bar {
+    display: block;
+    width: 100%;
+    height: 44px;
+    margin-top: 14px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--paper);
+    color: var(--ink);
+    font: 650 15px/1 "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .secondary-bar + .close-bar { margin-top: 8px; }
+  .sheet-subhead {
+    margin: 16px 0 4px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .sheet-subhead + .spot-list { margin-top: 4px; }
   .close-bar {
     display: block;
     width: 100%;
@@ -459,7 +559,14 @@
 </header>
 <div id="map" role="application" aria-label="Map of Birmingham and the surrounding 50 miles"></div>
 <div id="tools">
-  <button type="button" id="locate">Near me</button>
+  <button type="button" id="locate" data-state="idle" aria-pressed="false" aria-label="Find my current location">
+    <svg class="locate-icon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+      <circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="1.9"/>
+      <circle class="locate-core" cx="10" cy="10" r="2.3" fill="currentColor"/>
+      <path d="M10 1.5v2.7M10 15.8v2.7M1.5 10h2.7M15.8 10h2.7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+    </svg>
+    <span id="locateLabel">My location</span>
+  </button>
   <button type="button" id="suburbsBtn" aria-pressed="true">Suburbs</button>
   <button type="button" id="neighborhoodsBtn" aria-pressed="false">Neighborhoods</button>
   <button type="button" id="countiesBtn" aria-pressed="false">Counties</button>
@@ -587,6 +694,8 @@ const searchInput = document.getElementById("searchInput");
 const searchClear = document.getElementById("searchClear");
 const schoolChips = document.getElementById("schoolChips");
 const storeChips = document.getElementById("storeChips");
+const locateBtn = document.getElementById("locate");
+const locateLabel = document.getElementById("locateLabel");
 
 function inkFor(hex) {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -619,11 +728,93 @@ function brandInfo(pin) {
   return { color: info.color, mark: info.mark, ink: inkFor(info.color), label: info.label };
 }
 
-function showToast(message) {
+function showToast(message, duration = 3600) {
   toastEl.hidden = false;
   toastEl.textContent = message;
   clearTimeout(showToast.timer);
-  showToast.timer = setTimeout(() => { toastEl.hidden = true; }, 3600);
+  showToast.timer = setTimeout(() => { toastEl.hidden = true; }, duration);
+}
+
+function distanceMiles(lat1, lng1, lat2, lng2) {
+  const toRad = Math.PI / 180;
+  const dLat = (lat2 - lat1) * toRad;
+  const dLng = (lng2 - lng1) * toRad;
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) * Math.sin(dLng / 2) ** 2;
+  return 3958.7613 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+function formatMiles(miles) {
+  if (miles < 0.1) return Math.max(50, Math.round((miles * 5280) / 10) * 10) + " ft";
+  return miles < 10 ? miles.toFixed(1) + " mi" : Math.round(miles) + " mi";
+}
+function formatAccuracy(meters) {
+  if (!meters || meters <= 0) return "";
+  const feet = Math.round(meters * 3.28084);
+  if (feet < 1000) return "Within " + Math.max(10, Math.round(feet / 5) * 5) + " ft";
+  return "Within " + (meters / 1609.344).toFixed(1) + " mi";
+}
+function extendBbox(bbox, ring) {
+  for (let i = 0; i < ring.length; i++) {
+    const x = ring[i][0], y = ring[i][1];
+    if (x < bbox[0]) bbox[0] = x;
+    if (y < bbox[1]) bbox[1] = y;
+    if (x > bbox[2]) bbox[2] = x;
+    if (y > bbox[3]) bbox[3] = y;
+  }
+}
+function walkGeometryBbox(geom, bbox) {
+  if (!geom) return;
+  if (geom.type === "Polygon") {
+    if (geom.coordinates[0]) extendBbox(bbox, geom.coordinates[0]);
+  } else if (geom.type === "MultiPolygon") {
+    geom.coordinates.forEach((poly) => { if (poly[0]) extendBbox(bbox, poly[0]); });
+  } else if (geom.type === "GeometryCollection") {
+    (geom.geometries || []).forEach((part) => walkGeometryBbox(part, bbox));
+  }
+}
+function featureBbox(feature) {
+  if (!feature._bbox) {
+    const bbox = [Infinity, Infinity, -Infinity, -Infinity];
+    walkGeometryBbox(feature.geometry, bbox);
+    feature._bbox = bbox;
+  }
+  return feature._bbox;
+}
+function pointInRing(lng, lat, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    if (((yi > lat) !== (yj > lat)) && (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi)) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+function pointInPolygonCoords(lng, lat, coords) {
+  if (!coords.length || !pointInRing(lng, lat, coords[0])) return false;
+  for (let i = 1; i < coords.length; i++) {
+    if (pointInRing(lng, lat, coords[i])) return false;
+  }
+  return true;
+}
+function pointInGeometry(lng, lat, geom) {
+  if (!geom) return false;
+  if (geom.type === "Polygon") return pointInPolygonCoords(lng, lat, geom.coordinates);
+  if (geom.type === "MultiPolygon") return geom.coordinates.some((poly) => pointInPolygonCoords(lng, lat, poly));
+  if (geom.type === "GeometryCollection") return (geom.geometries || []).some((part) => pointInGeometry(lng, lat, part));
+  return false;
+}
+function pointInFeature(lat, lng, feature) {
+  const [minLng, minLat, maxLng, maxLat] = featureBbox(feature);
+  if (lng < minLng || lng > maxLng || lat < minLat || lat > maxLat) return false;
+  return pointInGeometry(lng, lat, feature.geometry);
+}
+function findContaining(collection, lat, lng) {
+  const matches = collection.features.filter((feature) => pointInFeature(lat, lng, feature));
+  if (!matches.length) return null;
+  matches.sort((a, b) => (a.properties.area_km2 || Infinity) - (b.properties.area_km2 || Infinity));
+  return matches[0];
 }
 
 if (!window.L || !window.L.markerClusterGroup) {
@@ -676,7 +867,15 @@ async function boot() {
   let query = "";
   let selected = null;
   let selectedArea = "";
-  let me = null;
+  let meMarker = null;
+  let meHalo = null;
+  let mePos = null;
+  let meSheetPos = null;
+  let watchId = null;
+  let watchCoarse = false;
+  let locating = false;
+  let following = false;
+  let outsideWarned = false;
   let toastTimer = 0;
 
   const map = L.map("map", {
@@ -749,6 +948,7 @@ async function boot() {
       ["suburbs", 350],
       ["neighborhoods", 360],
       ["districts", 370],
+      ["meHalo", 380],
       ["stores", 420],
       ["schools", 450],
       ["names", 470],
@@ -1080,17 +1280,38 @@ async function boot() {
     document.getElementById("listBtn").setAttribute("aria-pressed", sheetEl.dataset.mode === "list" ? "true" : "false");
   }
   function closeSheet() {
+    const wasMe = sheetEl.dataset.mode === "me";
     sheetEl.hidden = true;
     sheetEl.dataset.mode = "";
     document.getElementById("listBtn").setAttribute("aria-pressed", "false");
+    if (wasMe && meMarker) meMarker.setIcon(meIcon(false));
     if (selected) {
       selected = null;
       renderPins();
     }
   }
   function openPin(pin, fly) {
+    if (fly) {
+      pauseFollow();
+      const group = pin.kind === "school" ? "schools" : "stores";
+      let changed = false;
+      if (!layersOn[group]) { layersOn[group] = true; changed = true; }
+      if (pin.kind === "school") {
+        if (!schoolBands(pin).some((band) => levels.has(band))) { levels.add(pin.level); changed = true; }
+        if (!sectors.has(pin.sector)) { sectors.add(pin.sector); changed = true; }
+      } else if (!categories.has(categoryId(pin.category))) {
+        categories.add(categoryId(pin.category));
+        changed = true;
+      }
+      if (changed) {
+        paintToggles();
+        renderPins();
+        persist();
+      }
+    }
     selected = pin;
     selectedArea = "";
+    if (meMarker) meMarker.setIcon(meIcon(false));
     syncPolygons();
     const marker = markerById.get(pin.kind + ":" + pin.id);
     if (marker) marker.setIcon(pinIcon(pin, true));
@@ -1098,9 +1319,7 @@ async function boot() {
     showSheet(pinHtml(pin));
     if (!fly) return;
     const zoom = Math.max(map.getZoom(), 15);
-    const point = map.project([pin.lat, pin.lng], zoom);
-    point.y += (sheetEl.offsetHeight || 240) / 2;
-    map.flyTo(map.unproject(point, zoom), zoom, { duration: 0.45 });
+    map.flyTo(targetCenterFor(pin.lat, pin.lng, zoom), zoom, { duration: 0.45 });
   }
   function findAreaLayer(group, name, city) {
     const groupLayer = group === "suburbs" ? suburbLayer : group === "counties" ? countyLayer : group === "neighborhoods" ? neighborhoodLayer : districtLayer;
@@ -1114,8 +1333,10 @@ async function boot() {
     return found;
   }
   function openArea(group, feature, layer) {
+    pauseFollow();
     if (!layer) layer = findAreaLayer(group, feature.properties.name, feature.properties.city);
     if (selected) selected = null;
+    if (meMarker) meMarker.setIcon(meIcon(false));
     layersOn[group] = true;
     selectedArea = group + ":" + feature.properties.name;
     paintToggles();
@@ -1226,7 +1447,330 @@ async function boot() {
     document.getElementById("keyBtn").setAttribute("aria-pressed", "false");
   }
   function fitHome() {
+    pauseFollow();
     map.fitBounds(ring.getBounds(), { padding: [16, 16] });
+  }
+  function targetCenterFor(lat, lng, zoom) {
+    if (sheetEl.hidden) return L.latLng(lat, lng);
+    const point = map.project([lat, lng], zoom);
+    point.y += Math.min((sheetEl.offsetHeight || 240) / 2, map.getSize().y * 0.28);
+    return map.unproject(point, zoom);
+  }
+  function meIcon(on) {
+    return L.divIcon({
+      className: "me-icon",
+      html: `<div class="me-pin${on ? " is-on" : ""}" title="Your current location"><span class="me-halo"></span><span class="me-dot"></span></div>`,
+      iconSize: [44, 44],
+      iconAnchor: [22, 22]
+    });
+  }
+  function paintLocate() {
+    let state = "idle";
+    let label = "My location";
+    let pressed = "false";
+    let aria = "Find my current location";
+    if (watchId !== null) {
+      if (locating && !mePos) {
+        state = "locating";
+        label = "Locating…";
+        pressed = "true";
+        aria = "Cancel finding current location";
+      } else if (following) {
+        state = "following";
+        label = "My location";
+        pressed = "true";
+        aria = "Stop live location tracking";
+      } else {
+        state = "offcenter";
+        label = "Re-center";
+        pressed = "false";
+        aria = "Re-center map on my location";
+      }
+    }
+    locateBtn.dataset.state = state;
+    locateBtn.setAttribute("aria-pressed", pressed);
+    locateBtn.setAttribute("aria-label", aria);
+    locateLabel.textContent = label;
+  }
+  function pauseFollow() {
+    if (watchId === null || !following) return;
+    following = false;
+    paintLocate();
+  }
+  function flyToMe() {
+    if (!mePos) return;
+    const zoom = Math.max(map.getZoom(), 15);
+    map.flyTo(targetCenterFor(mePos.lat, mePos.lng, zoom), zoom, { duration: 0.45 });
+  }
+  function meHtml() {
+    if (!mePos) return "";
+    const { lat, lng, accuracy } = mePos;
+    const hood = findContaining(neighborhoods, lat, lng);
+    const suburb = findContaining(places, lat, lng);
+    const district = findContaining(districts, lat, lng);
+    const county = findContaining(counties, lat, lng);
+    const milesCenter = distanceMiles(lat, lng, meta.center[0], meta.center[1]);
+    const inRing = milesCenter <= meta.miles;
+    const title = hood
+      ? hood.properties.name
+      : suburb
+        ? suburb.properties.name
+        : county
+          ? "Unincorporated " + county.properties.name + " County"
+          : "Your current location";
+    const accText = formatAccuracy(accuracy);
+    const pills = pill("Current location", "#2563eb") + (accText ? pill(accText, "#241c16") : "");
+    const centerLine = milesCenter < 0.2
+      ? "Downtown Birmingham"
+      : formatMiles(milesCenter) + " from downtown Birmingham" + (inRing ? "" : " · outside the 50-mile map ring");
+
+    const areaItems = [];
+    if (hood) {
+      const sub = [hood.properties.city, "Neighborhood"].filter(Boolean).join(" · ");
+      areaItems.push(`<li><button type="button" data-area="${escapeHtml("neighborhoods:" + hood.properties.name)}" data-city="${escapeHtml(hood.properties.city || "")}">
+        <span class="mark round" style="--c:${hood.properties.color || "#6d6258"}"></span>
+        <span class="name">${escapeHtml(hood.properties.name)}</span>
+        <span class="meta">${escapeHtml(sub)}</span>
+      </button></li>`);
+    }
+    if (suburb) {
+      areaItems.push(`<li><button type="button" data-area="${escapeHtml("suburbs:" + suburb.properties.name)}" data-city="">
+        <span class="mark round" style="--c:${suburb.properties.color || suburbColor(suburb.properties.name)}"></span>
+        <span class="name">${escapeHtml(suburb.properties.name)}</span>
+        <span class="meta">${escapeHtml(suburb.properties.kind || "City or town")}</span>
+      </button></li>`);
+    }
+    if (district) {
+      const dMeta = ["Public school system", district.properties.grades ? "grades " + district.properties.grades : ""].filter(Boolean).join(" · ");
+      areaItems.push(`<li><button type="button" data-area="${escapeHtml("districts:" + district.properties.name)}" data-city="">
+        <span class="mark round" style="--c:#1f4b99"></span>
+        <span class="name">${escapeHtml(district.properties.name)}</span>
+        <span class="meta">${escapeHtml(dMeta)}</span>
+      </button></li>`);
+    }
+    if (county) {
+      const cMeta = suburb ? "County" : "County · outside city and town limits";
+      areaItems.push(`<li><button type="button" data-area="${escapeHtml("counties:" + county.properties.name)}" data-city="">
+        <span class="mark round" style="--c:${county.properties.color || county.properties.stroke || "#6d6258"}"></span>
+        <span class="name">${escapeHtml(county.properties.name + " County")}</span>
+        <span class="meta">${escapeHtml(cMeta)}</span>
+      </button></li>`);
+    }
+
+    let nearbyHtml = "";
+    if (milesCenter <= meta.miles + 15) {
+      const schoolPool = schools.filter((pin) => schoolBands(pin).some((band) => levels.has(band)) && sectors.has(pin.sector));
+      const nearestSchools = (schoolPool.length ? schoolPool : schools)
+        .map((pin) => ({ pin, dist: distanceMiles(lat, lng, pin.lat, pin.lng) }))
+        .sort((a, b) => a.dist - b.dist)
+        .slice(0, 3)
+        .map(({ pin, dist }) => {
+          const color = pin.sector === "private" ? "#8c3a4b" : "#1f4b99";
+          const label = (pin.sector === "private" ? "Private" : "Public")
+            + (pin.grades ? " · grades " + pin.grades : " " + (LEVEL_LABEL[pin.level] || ""));
+          return `<li><button type="button" data-pin="${escapeHtml(pin.kind + ":" + pin.id)}">
+            <span class="mark ${pin.level}" style="--c:${color}"></span>
+            <span class="name">${escapeHtml(pin.name)}</span>
+            <span class="meta">${escapeHtml(formatMiles(dist) + " · " + label)}</span>
+          </button></li>`;
+        }).join("");
+
+      const storePool = amenities.filter((pin) => categories.has(categoryId(pin.category)));
+      const fallbackStores = amenities.filter((pin) => !QUIET_CATEGORIES.has(categoryId(pin.category)));
+      const nearestStores = (storePool.length ? storePool : (fallbackStores.length ? fallbackStores : amenities))
+        .map((pin) => ({ pin, dist: distanceMiles(lat, lng, pin.lat, pin.lng) }))
+        .sort((a, b) => a.dist - b.dist)
+        .slice(0, 3)
+        .map(({ pin, dist }) => {
+          const info = brandInfo(pin);
+          const detail = [formatMiles(dist), info.label, pin.city].filter(Boolean).join(" · ");
+          return `<li><button type="button" data-pin="${escapeHtml(pin.kind + ":" + pin.id)}">
+            <span class="mark round" style="--c:${info.color}"></span>
+            <span class="name">${escapeHtml(pin.name)}</span>
+            <span class="meta">${escapeHtml(detail)}</span>
+          </button></li>`;
+        }).join("");
+
+      if (nearestSchools) nearbyHtml += `<p class="sheet-subhead">Closest schools</p><ul class="spot-list">${nearestSchools}</ul>`;
+      if (nearestStores) nearbyHtml += `<p class="sheet-subhead">Closest amenities</p><ul class="spot-list">${nearestStores}</ul>`;
+    }
+
+    const areasBlock = areaItems.length
+      ? `<p class="sheet-subhead">Areas at this spot</p><ul class="spot-list">${areaItems.join("")}</ul>`
+      : `<p class="hint">This spot is outside the 50-mile Birmingham boundary layers.</p>`;
+
+    return `
+      <div class="sheet-top"><div>
+        <p class="eyebrow">${pills}</p>
+        <h2 id="sheetTitle">${escapeHtml(title)}</h2>
+      </div></div>
+      <p class="area">${escapeHtml(centerLine)}</p>
+      ${areasBlock}
+      ${nearbyHtml}
+      <button type="button" class="secondary-bar" data-stop-locate>Stop sharing location</button>
+      ${closeButton()}`;
+  }
+  function openMe() {
+    if (!mePos) return;
+    if (selected) {
+      selected = null;
+      renderPins();
+    }
+    selectedArea = "";
+    syncPolygons();
+    if (meMarker) meMarker.setIcon(meIcon(true));
+    meSheetPos = { lat: mePos.lat, lng: mePos.lng };
+    sheetEl.dataset.mode = "me";
+    showSheet(meHtml());
+    const zoom = Math.max(map.getZoom(), 14);
+    map.flyTo(targetCenterFor(mePos.lat, mePos.lng, zoom), zoom, { duration: 0.35 });
+  }
+  function onPosition(pos) {
+    const lat = pos && pos.coords && pos.coords.latitude;
+    const lng = pos && pos.coords && pos.coords.longitude;
+    const accuracy = pos && pos.coords && Number.isFinite(pos.coords.accuracy) ? pos.coords.accuracy : 0;
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+    const firstFix = !mePos;
+    const prev = mePos;
+    locating = false;
+    mePos = { lat, lng, accuracy };
+
+    const isSheetOnMe = !sheetEl.hidden && sheetEl.dataset.mode === "me";
+    if (!meMarker) {
+      meMarker = L.marker([lat, lng], {
+        pane: "me",
+        icon: meIcon(isSheetOnMe),
+        keyboard: true,
+        title: "Your current location"
+      }).addTo(map);
+      meMarker.on("click", (event) => {
+        L.DomEvent.stopPropagation(event);
+        openMe();
+      });
+    } else {
+      meMarker.setLatLng([lat, lng]);
+    }
+
+    if (accuracy > 15) {
+      if (!meHalo) {
+        meHalo = L.circle([lat, lng], {
+          pane: "meHalo",
+          radius: accuracy,
+          color: "#2563eb",
+          weight: 1.25,
+          opacity: 0.35,
+          fillColor: "#2563eb",
+          fillOpacity: 0.1,
+          interactive: false
+        }).addTo(map);
+      } else {
+        meHalo.setLatLng([lat, lng]);
+        meHalo.setRadius(accuracy);
+        if (!map.hasLayer(meHalo)) meHalo.addTo(map);
+      }
+    } else if (meHalo && map.hasLayer(meHalo)) {
+      map.removeLayer(meHalo);
+    }
+
+    if (following) {
+      if (firstFix) {
+        flyToMe();
+      } else if (prev) {
+        const movedMeters = distanceMiles(prev.lat, prev.lng, lat, lng) * 1609.344;
+        const padded = map.getBounds().pad(-0.2);
+        if (movedMeters > 8 || !padded.contains([lat, lng])) {
+          map.panTo(targetCenterFor(lat, lng, map.getZoom()), { animate: true });
+        }
+      }
+    }
+
+    const milesFromCenter = distanceMiles(lat, lng, meta.center[0], meta.center[1]);
+    if (milesFromCenter > meta.miles && !outsideWarned) {
+      outsideWarned = true;
+      showToast("You are " + Math.round(milesFromCenter) + " miles from downtown Birmingham, outside the 50-mile map data.", 4800);
+    }
+
+    if (isSheetOnMe) {
+      const sheetMoved = !meSheetPos || distanceMiles(meSheetPos.lat, meSheetPos.lng, lat, lng) * 1609.344 > 25;
+      if (firstFix || sheetMoved) {
+        meSheetPos = { lat, lng };
+        sheetBody.innerHTML = meHtml();
+      }
+    }
+    paintLocate();
+  }
+  function onPositionError(err) {
+    const code = err && err.code;
+    if ((code === 2 || code === 3) && !watchCoarse) {
+      startWatch(false);
+      return;
+    }
+    if (code === 1) {
+      stopLocate(false);
+      showToast("Location access is blocked. Allow location for this site in your browser or phone settings.", 5200);
+      return;
+    }
+    if (mePos) {
+      locating = false;
+      paintLocate();
+      return;
+    }
+    stopLocate(false);
+    if (code === 3) {
+      showToast("Location took too long to respond. Try again with a clearer view of the sky.", 4600);
+    } else {
+      showToast("Could not determine your current location right now.", 4400);
+    }
+  }
+  function startWatch(highAccuracy) {
+    if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    watchCoarse = !highAccuracy;
+    watchId = navigator.geolocation.watchPosition(
+      onPosition,
+      onPositionError,
+      highAccuracy
+        ? { enableHighAccuracy: true, timeout: 20000, maximumAge: 5000 }
+        : { enableHighAccuracy: false, timeout: 15000, maximumAge: 30000 }
+    );
+  }
+  function startLocate() {
+    if (!window.isSecureContext) {
+      showToast("Location sharing on phones requires HTTPS (or localhost). Open an HTTPS link to use My location.", 5200);
+      return;
+    }
+    if (!("geolocation" in navigator) || !navigator.geolocation) {
+      showToast("This browser does not support location sharing.", 4400);
+      return;
+    }
+    locating = true;
+    following = true;
+    outsideWarned = false;
+    startWatch(true);
+    paintLocate();
+  }
+  function stopLocate(notify) {
+    if (watchId !== null && navigator.geolocation) {
+      navigator.geolocation.clearWatch(watchId);
+    }
+    watchId = null;
+    watchCoarse = false;
+    locating = false;
+    following = false;
+    mePos = null;
+    meSheetPos = null;
+    if (meMarker) {
+      map.removeLayer(meMarker);
+      meMarker = null;
+    }
+    if (meHalo) {
+      map.removeLayer(meHalo);
+      meHalo = null;
+    }
+    if (!sheetEl.hidden && sheetEl.dataset.mode === "me") {
+      closeSheet();
+    }
+    paintLocate();
+    if (notify) showToast("Location sharing turned off.");
   }
   function placeChrome() {
     document.getElementById("tools").style.top = (document.querySelector("header").offsetHeight + 10) + "px";
@@ -1274,8 +1818,22 @@ async function boot() {
     syncPolygons();
     fitHome();
   });
-  document.getElementById("locate").addEventListener("click", () => {
-    map.locate({ setView: true, maxZoom: 14, enableHighAccuracy: true });
+  locateBtn.addEventListener("click", () => {
+    if (watchId === null) {
+      startLocate();
+      return;
+    }
+    if (locating && !mePos) {
+      stopLocate(true);
+      return;
+    }
+    if (!following && mePos) {
+      following = true;
+      paintLocate();
+      flyToMe();
+      return;
+    }
+    stopLocate(true);
   });
   searchForm.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -1305,6 +1863,10 @@ async function boot() {
     searchInput.focus();
   });
   sheetEl.addEventListener("click", (event) => {
+    if (event.target.closest("[data-stop-locate]")) {
+      stopLocate(true);
+      return;
+    }
     if (event.target.closest("[data-close]")) {
       closeSheet();
       return;
@@ -1327,21 +1889,7 @@ async function boot() {
   map.on("click", () => {
     if (!sheetEl.hidden) closeSheet();
   });
-  map.on("locationfound", (event) => {
-    if (!me) {
-      me = L.circleMarker(event.latlng, {
-        pane: "me",
-        radius: 8,
-        color: "#fff",
-        weight: 3,
-        fillColor: "#2563eb",
-        fillOpacity: 1
-      }).addTo(map);
-    } else me.setLatLng(event.latlng);
-  });
-  map.on("locationerror", () => {
-    showToast("This browser did not share a location. You can still pan the map.");
-  });
+  map.on("dragstart", pauseFollow);
   map.on("zoomend", syncLabels);
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {

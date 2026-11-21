@@ -16,7 +16,7 @@ python3 -m http.server 8765
 
 Then open http://127.0.0.1:8765
 
-The title zooms back out to the 50-mile ring. **Near me** uses the browser’s location. Search keeps every word: `hoover elementary`, `private high`, `publix`, `shelby`.
+The title zooms back out to the 50-mile ring. **My location** asks the browser for your live position, keeps the blue dot updated as you move, and switches to **Re-center** if you pan away; tap the blue dot to see which neighborhood, suburb, school district, and county you are in, plus the closest schools and amenities (on a phone, browsers require `https://` or `localhost` to share location). Search keeps every word: `hoover elementary`, `private high`, `publix`, `shelby`.
 
 ## Layers
 
