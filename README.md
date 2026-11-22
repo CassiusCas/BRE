@@ -16,7 +16,7 @@ python3 -m http.server 8765
 
 Then open http://127.0.0.1:8765
 
-The title zooms back out to the 50-mile ring. **My location** asks the browser for your live position, keeps the blue dot updated as you move, and switches to **Re-center** if you pan away; tap the blue dot to see which neighborhood, suburb, school district, and county you are in, plus the closest schools and amenities (on a phone, browsers require `https://` or `localhost` to share location). Search keeps every word: `hoover elementary`, `private high`, `publix`, `shelby`.
+The title zooms back out to the 50-mile ring. **My location** asks the browser for your live position, keeps the blue dot updated as you move, and switches to **Re-center** if you pan away; tap the blue dot (or the **Work** pin) to see your containing neighborhood, suburb, school district, and county, closest schools and amenities, and live road driving distance and route to work (defaulting to `2204 Lakeshore Dr #325, Homewood, AL 35209`). Inside the commute card you can flip **To work** / **From work**, pick a weekday departure time (`Leave now`, `8:00 AM`, `5:15 PM`, or custom), open the trip in **Google Maps**, change the saved work address, or paste a free-tier **TomTom**, **Mapbox**, or **HERE** key (saved only in your browser) for historical rush-hour traffic. On a phone, browsers require `https://` or `localhost` to share location. Search keeps every word: `hoover elementary`, `private high`, `publix`, `shelby`.
 
 ## Layers
 
