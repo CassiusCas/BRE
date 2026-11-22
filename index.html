@@ -740,6 +740,10 @@
   <p class="fine">Named chains keep their own color. Other places in a category share one symbol. Fuel, propane, auto parts, lumber, and fire stations start off.</p>
   <h2>Areas</h2>
   <p class="fine">Each suburb and county has its own color, and the name is drawn in that color. Suburbs are city and town limits, plus census places. County lines are visible and are not clickable. Neighborhoods are a separate layer for Birmingham and the close-in suburbs. A tap opens the neighborhood when that layer is on. Otherwise a tap opens the school district, or the suburb if Districts are off. The dashed ring is 50 miles from downtown Birmingham.</p>
+  <h2>Commute</h2>
+  <ul>
+    <li><span class="work-badge sample">Work</span> Saved work address (tap to view or edit commute)</li>
+  </ul>
   <p class="fine" id="sourceNote"></p>
 </aside>
 <section id="sheet" hidden>
@@ -2052,6 +2056,8 @@ async function boot() {
 
     const gmaps = googleMapsDriveUrl(mePos, work);
     const customTimeVal = lv === "now" ? "" : lv;
+    const panel = document.getElementById("workSettingsPanel");
+    const settingsOpen = Boolean(panel && !panel.hidden);
     return `
       <div class="commute-row" role="group" aria-label="Commute direction">
         <button type="button" class="mini-chip" data-commute-dir="to" aria-pressed="${dirTo}">To work</button>
@@ -2070,7 +2076,7 @@ async function boot() {
         ${!mePos ? `<button type="button" class="mini-chip" data-start-locate>My location</button>` : ""}
         ${mePos && workRoute && workRoute.geometry ? `<button type="button" class="mini-chip" data-fit-work-route>Show route</button>` : ""}
         <a class="mini-chip" href="${escapeHtml(gmaps)}" target="_blank" rel="noopener noreferrer">Google Maps ↗</a>
-        <button type="button" class="mini-chip" data-toggle-work-settings>Settings</button>
+        <button type="button" class="mini-chip" data-toggle-work-settings aria-pressed="${settingsOpen}">Settings</button>
       </div>`;
   }
   function workSettingsHtml() {
@@ -2101,13 +2107,14 @@ async function boot() {
           <div class="field-row">
             <button type="button" class="btn-inline primary" data-save-work-key>Save key</button>
             ${hasKey ? `<button type="button" class="btn-inline" data-clear-work-key>Clear key</button>` : ""}
+            <button type="button" class="btn-inline" data-cancel-work-settings>Cancel</button>
           </div>
           <p class="hint">Without a key, driving distance and route use OSRM off-peak roads. A free TomTom, Mapbox, or HERE key unlocks historical weekday departure-time traffic.</p>
         </div>
       </div>`;
   }
   function commuteBoxHtml() {
-    return `<div class="commute-box"><div id="commuteDynamic">${commuteDynamicHtml()}</div>${workSettingsHtml()}</div>`;
+    return `<div id="workCommuteBox" class="commute-box"><div id="commuteDynamic">${commuteDynamicHtml()}</div>${workSettingsHtml()}</div>`;
   }
   function updateCommuteDom() {
     const dyn = document.getElementById("commuteDynamic");
@@ -2711,7 +2718,24 @@ async function boot() {
     }
     if (event.target.closest("[data-toggle-work-settings]")) {
       const panel = document.getElementById("workSettingsPanel");
-      if (panel) panel.hidden = !panel.hidden;
+      if (panel) {
+        panel.hidden = !panel.hidden;
+        const toggleBtn = sheetEl.querySelector("[data-toggle-work-settings]");
+        if (toggleBtn) toggleBtn.setAttribute("aria-pressed", String(!panel.hidden));
+      }
+      return;
+    }
+    if (event.target.closest("[data-cancel-work-settings]")) {
+      const panel = document.getElementById("workSettingsPanel");
+      const addrInput = document.getElementById("workAddrInput");
+      const keyInput = document.getElementById("workKeyInput");
+      const provSelect = document.getElementById("workProviderSelect");
+      if (addrInput) addrInput.value = work.address;
+      if (keyInput) keyInput.value = work.apiKey;
+      if (provSelect) provSelect.value = work.provider || "auto";
+      if (panel) panel.hidden = true;
+      const toggleBtn = sheetEl.querySelector("[data-toggle-work-settings]");
+      if (toggleBtn) toggleBtn.setAttribute("aria-pressed", "false");
       return;
     }
     if (event.target.closest("[data-save-work-addr]")) {
