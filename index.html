@@ -20,6 +20,7 @@
     --public: #1f4b99;
     --private: #8c3a4b;
     --me: #2563eb;
+    --work: #9a4a17;
   }
   * { box-sizing: border-box; }
   html, body {
@@ -169,7 +170,7 @@
     background: #e6e2da;
   }
   .leaflet-container { font-family: inherit; background: #e6e2da; }
-  .leaflet-counties-pane, .leaflet-meHalo-pane, .leaflet-me-pane { pointer-events: none; }
+  .leaflet-counties-pane, .leaflet-meHalo-pane, .leaflet-route-pane, .leaflet-work-pane, .leaflet-me-pane { pointer-events: none; }
   .raster-streets .leaflet-tile-pane { filter: grayscale(0.85) brightness(1.06) contrast(0.9); }
   .leaflet-top.leaflet-right { top: 10px; }
   .leaflet-control-attribution {
@@ -361,6 +362,38 @@
     outline: 3px solid var(--me);
     outline-offset: 2px;
   }
+  .work-icon {
+    background: none;
+    border: 0;
+    pointer-events: auto;
+  }
+  .work-pin {
+    min-width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .work-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 26px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: var(--work);
+    color: #fff;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(36, 28, 22, 0.32);
+    font: 800 11px/1 "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .work-pin.is-on .work-badge {
+    outline: 3px solid var(--work);
+    outline-offset: 2px;
+  }
   @keyframes mePulse {
     0% { transform: scale(0.55); opacity: 0.9; }
     75% { transform: scale(1.25); opacity: 0; }
@@ -452,6 +485,120 @@
     text-transform: uppercase;
   }
   .sheet-subhead + .spot-list { margin-top: 4px; }
+  .commute-box {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+  }
+  .commute-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  .commute-row + .commute-row { margin-top: 8px; }
+  .mini-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font: 650 12px/1 "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    text-decoration: none;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .mini-chip[aria-pressed="true"] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
+  .commute-time-input {
+    height: 32px;
+    padding: 0 8px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font: 600 16px/1 "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  }
+  .commute-stat {
+    margin: 10px 0 0;
+    font-size: 20px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  .commute-sub {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.35;
+  }
+  .commute-addr {
+    margin: 8px 0 0;
+    color: var(--ink);
+    font-size: 13px;
+    line-height: 1.35;
+  }
+  .commute-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .work-settings {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+  .work-settings[hidden] { display: none; }
+  .field-label {
+    display: block;
+    margin: 0 0 4px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .field-label + .field-input, .work-field + .work-field { margin-top: 10px; }
+  .field-input, .field-select {
+    width: 100%;
+    height: 40px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font: 500 16px/1.2 "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  }
+  .field-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .btn-inline {
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font: 650 13px/1 "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .btn-inline.primary {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
   .close-bar {
     display: block;
     width: 100%;
@@ -593,6 +740,10 @@
   <p class="fine">Named chains keep their own color. Other places in a category share one symbol. Fuel, propane, auto parts, lumber, and fire stations start off.</p>
   <h2>Areas</h2>
   <p class="fine">Each suburb and county has its own color, and the name is drawn in that color. Suburbs are city and town limits, plus census places. County lines are visible and are not clickable. Neighborhoods are a separate layer for Birmingham and the close-in suburbs. A tap opens the neighborhood when that layer is on. Otherwise a tap opens the school district, or the suburb if Districts are off. The dashed ring is 50 miles from downtown Birmingham.</p>
+  <h2>Commute</h2>
+  <ul>
+    <li><span class="work-badge sample">Work</span> Saved work address (tap to view or edit commute)</li>
+  </ul>
   <p class="fine" id="sourceNote"></p>
 </aside>
 <section id="sheet" hidden>
@@ -683,6 +834,12 @@ const BRANDS = {
   "Suburban Propane": ["#007a33", "SP"]
 };
 const SUBURB_COLORS = ["#c5d5b8", "#e4cbb0", "#c9d6e6", "#e6cdc6", "#d7d0e6", "#d5e0c8", "#ead9a8", "#d9c8b4", "#c9ddd2", "#e7d4c6"];
+const DEFAULT_WORK = {
+  address: "2204 Lakeshore Dr #325, Homewood, AL 35209",
+  lat: 33.46663,
+  lng: -86.78173
+};
+const HERE_TABLE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
 const countEl = document.getElementById("count");
 const sheetEl = document.getElementById("sheet");
@@ -752,6 +909,302 @@ function formatAccuracy(meters) {
   const feet = Math.round(meters * 3.28084);
   if (feet < 1000) return "Within " + Math.max(10, Math.round(feet / 5) * 5) + " ft";
   return "Within " + (meters / 1609.344).toFixed(1) + " mi";
+}
+function formatDuration(seconds) {
+  const mins = Math.max(1, Math.round(seconds / 60));
+  if (mins < 60) return mins + " min";
+  const hrs = Math.floor(mins / 60);
+  const rem = mins % 60;
+  return rem ? hrs + " hr " + rem + " min" : hrs + " hr";
+}
+function pad2(n) {
+  return String(n).padStart(2, "0");
+}
+function formatClock12(hhmm) {
+  const [hRaw, mRaw] = String(hhmm || "08:00").split(":").map(Number);
+  const h = Number.isFinite(hRaw) ? hRaw : 8;
+  const m = Number.isFinite(mRaw) ? mRaw : 0;
+  const period = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 || 12;
+  return h12 + ":" + pad2(m) + " " + period;
+}
+function nextWeekdayDeparture(hhmm, nowDate = new Date()) {
+  const [hRaw, mRaw] = String(hhmm || "08:00").split(":").map(Number);
+  const h = Number.isFinite(hRaw) ? hRaw : 8;
+  const m = Number.isFinite(mRaw) ? mRaw : 0;
+  const target = new Date(nowDate.getTime());
+  target.setHours(h, m, 0, 0);
+  while (target.getTime() <= nowDate.getTime() + 60000 || target.getDay() === 0 || target.getDay() === 6) {
+    target.setDate(target.getDate() + 1);
+    target.setHours(h, m, 0, 0);
+  }
+  const off = -target.getTimezoneOffset();
+  const sign = off >= 0 ? "+" : "-";
+  const absOff = Math.abs(off);
+  const offsetStr = sign + pad2(Math.floor(absOff / 60)) + ":" + pad2(absOff % 60);
+  const datePart = target.getFullYear() + "-" + pad2(target.getMonth() + 1) + "-" + pad2(target.getDate());
+  const timePart = pad2(target.getHours()) + ":" + pad2(target.getMinutes());
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  return {
+    isoWithOffset: datePart + "T" + timePart + ":00" + offsetStr,
+    isoLocalMinute: datePart + "T" + timePart,
+    label: days[target.getDay()] + " " + formatClock12(timePart)
+  };
+}
+function resolveTrafficProvider(provider, apiKey) {
+  const key = String(apiKey || "").trim();
+  if (!key) return "osrm";
+  if (provider === "mapbox" || (provider === "auto" && key.startsWith("pk."))) return "mapbox";
+  if (provider === "here") return "here";
+  return "tomtom";
+}
+function decodeHerePolyline(encoded) {
+  if (!encoded) return null;
+  let idx = 0;
+  function nextUnsigned() {
+    let result = 0n, shift = 0n;
+    while (idx < encoded.length) {
+      const val = HERE_TABLE.indexOf(encoded[idx++]);
+      if (val < 0) throw new Error("Invalid polyline");
+      result |= BigInt(val & 0x1f) << shift;
+      if ((val & 0x20) === 0) return result;
+      shift += 5n;
+    }
+    return result;
+  }
+  function nextSigned() {
+    const u = nextUnsigned();
+    return Number((u & 1n) !== 0n ? ~(u >> 1n) : (u >> 1n));
+  }
+  nextUnsigned();
+  const header = Number(nextUnsigned());
+  const factor = 10 ** (header & 15);
+  const thirdDim = (header >> 4) & 7;
+  let lat = 0, lng = 0;
+  const coords = [];
+  while (idx < encoded.length) {
+    lat += nextSigned();
+    lng += nextSigned();
+    if (thirdDim) nextSigned();
+    coords.push([lng / factor, lat / factor]);
+  }
+  return coords.length > 1 ? { type: "LineString", coordinates: coords } : null;
+}
+function googleMapsDriveUrl(mePos, workCfg) {
+  const workTarget = workCfg.address || (workCfg.lat + "," + workCfg.lng);
+  if (!mePos) {
+    return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(workTarget);
+  }
+  const meTarget = mePos.lat + "," + mePos.lng;
+  const origin = workCfg.direction === "from" ? workTarget : meTarget;
+  const destination = workCfg.direction === "from" ? meTarget : workTarget;
+  return "https://www.google.com/maps/dir/?api=1&origin=" + encodeURIComponent(origin)
+    + "&destination=" + encodeURIComponent(destination) + "&travelmode=driving";
+}
+function stripAddressUnit(raw) {
+  return String(raw || "")
+    .replace(/\s+#\s*[\w-]+/g, "")
+    .replace(/,?\s*\b(?:suite|ste|apt|apartment|unit|fl|floor|rm|room|bldg)\b\.?\s*[\w-]+/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+async function fetchJsonWithTimeout(url, signal, timeoutMs = 8000) {
+  const ctrl = new AbortController();
+  const onAbort = () => ctrl.abort();
+  if (signal) {
+    if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+    signal.addEventListener("abort", onAbort, { once: true });
+  }
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    return { ok: res.ok, status: res.status, data: res.ok ? await res.json() : null };
+  } finally {
+    clearTimeout(timer);
+    if (signal) signal.removeEventListener("abort", onAbort);
+  }
+}
+async function fetchOsrmDriving(orig, dest, signal) {
+  const pair = `${orig.lng},${orig.lat};${dest.lng},${dest.lat}?overview=full&geometries=geojson`;
+  const urls = [
+    "https://router.project-osrm.org/route/v1/driving/" + pair,
+    "https://routing.openstreetmap.de/routed-car/route/v1/driving/" + pair
+  ];
+  for (const url of urls) {
+    try {
+      const res = await fetchJsonWithTimeout(url, signal, 7500);
+      const route = res.ok && res.data && res.data.routes && res.data.routes[0];
+      if (route && Number.isFinite(route.distance) && Number.isFinite(route.duration)) {
+        return {
+          distanceMiles: route.distance / 1609.344,
+          durationSeconds: route.duration,
+          freeFlowSeconds: null,
+          geometry: route.geometry || null,
+          providerLabel: "OSRM",
+          hasTraffic: false,
+          departLabel: ""
+        };
+      }
+    } catch (err) {
+      if (signal && signal.aborted) throw err;
+    }
+  }
+  throw new Error("Driving route unavailable");
+}
+async function fetchDrivingRoute(orig, dest, workCfg, signal) {
+  const key = String(workCfg.apiKey || "").trim();
+  const provider = resolveTrafficProvider(workCfg.provider, key);
+  const depart = workCfg.leaveTime && workCfg.leaveTime !== "now"
+    ? nextWeekdayDeparture(workCfg.leaveTime)
+    : null;
+  let keyWarning = "";
+
+  if (provider === "tomtom") {
+    const params = new URLSearchParams({
+      key,
+      traffic: "true",
+      travelMode: "car",
+      computeTravelTimeFor: "all",
+      departAt: depart ? depart.isoWithOffset : "now"
+    });
+    const url = `https://api.tomtom.com/routing/1/calculateRoute/${orig.lat},${orig.lng}:${dest.lat},${dest.lng}/json?${params}`;
+    const res = await fetchJsonWithTimeout(url, signal, 8500);
+    const route = res.ok && res.data && res.data.routes && res.data.routes[0];
+    if (route && route.summary) {
+      const pts = (route.legs || []).flatMap((leg) => leg.points || []);
+      return {
+        distanceMiles: route.summary.lengthInMeters / 1609.344,
+        durationSeconds: route.summary.travelTimeInSeconds,
+        freeFlowSeconds: route.summary.noTrafficTravelTimeInSeconds || null,
+        geometry: pts.length > 1 ? { type: "LineString", coordinates: pts.map((p) => [p.longitude, p.latitude]) } : null,
+        providerLabel: "TomTom",
+        hasTraffic: true,
+        departLabel: depart ? depart.label : "live traffic",
+        warning: ""
+      };
+    }
+    keyWarning = res.status === 401 || res.status === 403
+      ? "TomTom rejected the saved API key — showing off-peak road route."
+      : "TomTom traffic route unavailable — showing off-peak road route.";
+  } else if (provider === "mapbox") {
+    const params = new URLSearchParams({
+      access_token: key,
+      geometries: "geojson",
+      overview: "full"
+    });
+    if (depart) params.set("depart_at", depart.isoLocalMinute);
+    const url = `https://api.mapbox.com/directions/v5/mapbox/driving-traffic/${orig.lng},${orig.lat};${dest.lng},${dest.lat}?${params}`;
+    const res = await fetchJsonWithTimeout(url, signal, 8500);
+    const route = res.ok && res.data && res.data.routes && res.data.routes[0];
+    if (route && Number.isFinite(route.distance) && Number.isFinite(route.duration)) {
+      return {
+        distanceMiles: route.distance / 1609.344,
+        durationSeconds: route.duration,
+        freeFlowSeconds: null,
+        geometry: route.geometry || null,
+        providerLabel: "Mapbox",
+        hasTraffic: true,
+        departLabel: depart ? depart.label : "live traffic",
+        warning: ""
+      };
+    }
+    keyWarning = res.status === 401 || res.status === 403
+      ? "Mapbox rejected the saved token — showing off-peak road route."
+      : "Mapbox traffic route unavailable — showing off-peak road route.";
+  } else if (provider === "here") {
+    const params = new URLSearchParams({
+      transportMode: "car",
+      origin: `${orig.lat},${orig.lng}`,
+      destination: `${dest.lat},${dest.lng}`,
+      return: "summary,polyline",
+      apiKey: key
+    });
+    if (depart) params.set("departureTime", depart.isoWithOffset);
+    const url = `https://router.hereapi.com/v8/routes?${params}`;
+    const res = await fetchJsonWithTimeout(url, signal, 8500);
+    const route = res.ok && res.data && res.data.routes && res.data.routes[0];
+    if (route && route.sections && route.sections.length) {
+      let dist = 0, dur = 0, base = 0;
+      const coords = [];
+      route.sections.forEach((sec) => {
+        if (sec.summary) {
+          dist += sec.summary.length || 0;
+          dur += sec.summary.duration || 0;
+          base += sec.summary.baseDuration || 0;
+        }
+        const decoded = decodeHerePolyline(sec.polyline);
+        if (decoded) coords.push(...decoded.coordinates);
+      });
+      return {
+        distanceMiles: dist / 1609.344,
+        durationSeconds: dur,
+        freeFlowSeconds: base || null,
+        geometry: coords.length > 1 ? { type: "LineString", coordinates: coords } : null,
+        providerLabel: "HERE",
+        hasTraffic: true,
+        departLabel: depart ? depart.label : "live traffic",
+        warning: ""
+      };
+    }
+    keyWarning = res.status === 401 || res.status === 403
+      ? "HERE rejected the saved API key — showing off-peak road route."
+      : "HERE traffic route unavailable — showing off-peak road route.";
+  }
+
+  const fallback = await fetchOsrmDriving(orig, dest, signal);
+  fallback.warning = keyWarning;
+  fallback.departLabel = depart ? depart.label : "";
+  return fallback;
+}
+async function geocodeWorkAddress(rawAddress, workCfg) {
+  const clean = String(rawAddress || "").trim();
+  if (!clean) throw new Error("Enter a street address or city.");
+  if (clean.toLowerCase() === DEFAULT_WORK.address.toLowerCase()) {
+    return { lat: DEFAULT_WORK.lat, lng: DEFAULT_WORK.lng };
+  }
+  const stripped = stripAddressUnit(clean);
+  const candidates = stripped && stripped !== clean ? [clean, stripped] : [clean];
+  const key = String(workCfg.apiKey || "").trim();
+  const provider = resolveTrafficProvider(workCfg.provider, key);
+
+  if (provider === "tomtom") {
+    for (const q of candidates) {
+      try {
+        const url = `https://api.tomtom.com/search/2/geocode/${encodeURIComponent(q)}.json?key=${encodeURIComponent(key)}&countrySet=US&limit=1`;
+        const res = await fetchJsonWithTimeout(url, null, 7000);
+        const pos = res.ok && res.data && res.data.results && res.data.results[0] && res.data.results[0].position;
+        if (pos && Number.isFinite(pos.lat) && Number.isFinite(pos.lon)) return { lat: pos.lat, lng: pos.lon };
+      } catch (err) {}
+    }
+  } else if (provider === "mapbox") {
+    for (const q of candidates) {
+      try {
+        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?access_token=${encodeURIComponent(key)}&country=us&proximity=-86.8025,33.5207&limit=1`;
+        const res = await fetchJsonWithTimeout(url, null, 7000);
+        const center = res.ok && res.data && res.data.features && res.data.features[0] && res.data.features[0].center;
+        if (center && center.length >= 2) return { lat: center[1], lng: center[0] };
+      } catch (err) {}
+    }
+  } else if (provider === "here") {
+    for (const q of candidates) {
+      try {
+        const url = `https://geocode.search.hereapi.com/v1/geocode?q=${encodeURIComponent(q)}&in=countryCode:USA&limit=1&apiKey=${encodeURIComponent(key)}`;
+        const res = await fetchJsonWithTimeout(url, null, 7000);
+        const pos = res.ok && res.data && res.data.items && res.data.items[0] && res.data.items[0].position;
+        if (pos && Number.isFinite(pos.lat) && Number.isFinite(pos.lng)) return { lat: pos.lat, lng: pos.lng };
+      } catch (err) {}
+    }
+  }
+
+  for (const q of candidates) {
+    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=us&limit=1&q=${encodeURIComponent(q)}`;
+    const res = await fetchJsonWithTimeout(url, null, 7500);
+    const hit = res.ok && Array.isArray(res.data) && res.data[0];
+    if (hit && Number.isFinite(Number(hit.lat)) && Number.isFinite(Number(hit.lon))) {
+      return { lat: Number(hit.lat), lng: Number(hit.lon) };
+    }
+  }
+  throw new Error("Address not found. Include city and state, like Homewood, AL.");
 }
 function extendBbox(bbox, ring) {
   for (let i = 0; i < ring.length; i++) {
@@ -877,6 +1330,23 @@ async function boot() {
   let following = false;
   let outsideWarned = false;
   let toastTimer = 0;
+  const savedWork = readWorkSaved();
+  const work = {
+    address: savedWork.address || DEFAULT_WORK.address,
+    lat: Number.isFinite(savedWork.lat) ? savedWork.lat : DEFAULT_WORK.lat,
+    lng: Number.isFinite(savedWork.lng) ? savedWork.lng : DEFAULT_WORK.lng,
+    direction: savedWork.direction === "from" ? "from" : "to",
+    leaveTime: typeof savedWork.leaveTime === "string" && savedWork.leaveTime ? savedWork.leaveTime : "now",
+    provider: ["auto", "tomtom", "mapbox", "here"].includes(savedWork.provider) ? savedWork.provider : "auto",
+    apiKey: typeof savedWork.apiKey === "string" ? savedWork.apiKey : ""
+  };
+  let workMarker = null;
+  let workRoute = null;
+  let workRouteState = "idle";
+  let workRouteOrigin = null;
+  let workRouteAt = 0;
+  let workRouteAbort = null;
+  let workSaving = false;
 
   const map = L.map("map", {
     zoomControl: true,
@@ -902,6 +1372,7 @@ async function boot() {
   const countyNames = L.layerGroup();
   const districtNames = L.layerGroup();
   const neighborhoodNames = L.layerGroup();
+  const workRouteLayer = L.layerGroup();
   const suburbLayer = L.geoJSON(places, {
     pane: "suburbs",
     style: suburbStyle,
@@ -949,9 +1420,11 @@ async function boot() {
       ["neighborhoods", 360],
       ["districts", 370],
       ["meHalo", 380],
+      ["route", 390],
       ["stores", 420],
       ["schools", 450],
       ["names", 470],
+      ["work", 480],
       ["me", 490]
     ];
     panes.forEach(([name, z]) => {
@@ -1285,6 +1758,8 @@ async function boot() {
     sheetEl.dataset.mode = "";
     document.getElementById("listBtn").setAttribute("aria-pressed", "false");
     if (wasMe && meMarker) meMarker.setIcon(meIcon(false));
+    syncWorkMarker();
+    syncWorkRoute();
     if (selected) {
       selected = null;
       renderPins();
@@ -1317,6 +1792,8 @@ async function boot() {
     if (marker) marker.setIcon(pinIcon(pin, true));
     sheetEl.dataset.mode = "pin";
     showSheet(pinHtml(pin));
+    syncWorkMarker();
+    syncWorkRoute();
     if (!fly) return;
     const zoom = Math.max(map.getZoom(), 15);
     map.flyTo(targetCenterFor(pin.lat, pin.lng, zoom), zoom, { duration: 0.45 });
@@ -1349,6 +1826,8 @@ async function boot() {
     }
     sheetEl.dataset.mode = "area";
     showSheet(areaHtml(group, feature));
+    syncWorkMarker();
+    syncWorkRoute();
   }
   function openList() {
     const shown = visiblePins();
@@ -1385,6 +1864,7 @@ async function boot() {
     const extra = shown.length > cap ? `<p class="hint">Showing ${cap} of ${shown.length}. Search to narrow the list.</p>` : "";
     const empty = shown.length || areas.length ? "" : `<li><p class="hint">Nothing matches.</p></li>`;
     sheetEl.dataset.mode = "list";
+    if (meMarker) meMarker.setIcon(meIcon(false));
     showSheet(`
       <div class="sheet-top"><div>
         <h2 id="sheetTitle">${query ? "Results" : "On the map"}</h2>
@@ -1393,6 +1873,8 @@ async function boot() {
       <ul class="spot-list">${areaRows}${rows}${empty}</ul>
       ${extra}
       ${closeButton()}`);
+    syncWorkMarker();
+    syncWorkRoute();
   }
 
   function renderChips() {
@@ -1463,6 +1945,246 @@ async function boot() {
       iconSize: [44, 44],
       iconAnchor: [22, 22]
     });
+  }
+  function workIcon(on) {
+    return L.divIcon({
+      className: "work-icon",
+      html: `<div class="work-pin${on ? " is-on" : ""}" title="${escapeHtml("Work: " + work.address)}"><span class="work-badge">Work</span></div>`,
+      iconSize: [54, 44],
+      iconAnchor: [27, 22]
+    });
+  }
+  function persistWork() {
+    try {
+      localStorage.setItem("bre-work", JSON.stringify(work));
+    } catch (err) {}
+  }
+  function syncWorkMarker() {
+    const isOn = !sheetEl.hidden && sheetEl.dataset.mode === "work";
+    if (!workMarker) {
+      workMarker = L.marker([work.lat, work.lng], {
+        pane: "work",
+        icon: workIcon(isOn),
+        keyboard: true,
+        title: "Work: " + work.address
+      }).addTo(map);
+      workMarker.on("click", (event) => {
+        L.DomEvent.stopPropagation(event);
+        openWork();
+      });
+    } else {
+      workMarker.setLatLng([work.lat, work.lng]);
+      workMarker.setIcon(workIcon(isOn));
+    }
+  }
+  function syncWorkRoute() {
+    workRouteLayer.clearLayers();
+    const show = !sheetEl.hidden
+      && (sheetEl.dataset.mode === "me" || sheetEl.dataset.mode === "work")
+      && mePos && workRoute && workRoute.geometry;
+    if (!show) {
+      setLayer(workRouteLayer, false);
+      return;
+    }
+    L.geoJSON(workRoute.geometry, {
+      pane: "route",
+      interactive: false,
+      style: { color: "#ffffff", weight: 8, opacity: 0.92, lineCap: "round", lineJoin: "round" }
+    }).addTo(workRouteLayer);
+    L.geoJSON(workRoute.geometry, {
+      pane: "route",
+      interactive: false,
+      style: { color: "#2563eb", weight: 4.5, opacity: 0.92, lineCap: "round", lineJoin: "round" }
+    }).addTo(workRouteLayer);
+    setLayer(workRouteLayer, true);
+  }
+  function fitWorkRoute() {
+    if (!mePos) return;
+    pauseFollow();
+    syncWorkRoute();
+    const pts = [[mePos.lat, mePos.lng], [work.lat, work.lng]];
+    if (workRoute && workRoute.geometry && Array.isArray(workRoute.geometry.coordinates)) {
+      workRoute.geometry.coordinates.forEach(([lng, lat]) => {
+        if (Number.isFinite(lat) && Number.isFinite(lng)) pts.push([lat, lng]);
+      });
+    }
+    const bottomPad = sheetEl.hidden
+      ? 32
+      : Math.min((sheetEl.offsetHeight || 260) + 24, Math.round(map.getSize().y * 0.62));
+    map.fitBounds(L.latLngBounds(pts), {
+      paddingTopLeft: [28, 28],
+      paddingBottomRight: [28, bottomPad],
+      maxZoom: 15
+    });
+  }
+  function commuteDynamicHtml() {
+    const dirTo = work.direction !== "from";
+    const lv = work.leaveTime || "now";
+    let stat = "";
+    let sub = "";
+    if (!mePos) {
+      stat = "Share location for driving distance";
+      sub = "Turn on My location to calculate road miles and drive time.";
+    } else if (workRouteState === "loading" && !workRoute) {
+      stat = "Calculating driving route…";
+      sub = dirTo ? "Road route from your spot to work" : "Road route from work to your spot";
+    } else if (workRouteState === "error" && !workRoute) {
+      stat = "Driving route unavailable";
+      sub = "Could not reach the road routing service right now. Open Google Maps below.";
+    } else if (workRoute) {
+      stat = `${formatMiles(workRoute.distanceMiles)} · ${formatDuration(workRoute.durationSeconds)} drive${workRouteState === "loading" ? " · updating…" : ""}`;
+      if (workRoute.hasTraffic) {
+        const diff = workRoute.freeFlowSeconds ? workRoute.durationSeconds - workRoute.freeFlowSeconds : 0;
+        const delayBit = diff >= 90
+          ? ` (+${formatDuration(diff)} vs. ${formatDuration(workRoute.freeFlowSeconds)} free-flow)`
+          : "";
+        const whenBit = workRoute.departLabel === "live traffic"
+          ? "Live traffic now"
+          : "Traffic for " + workRoute.departLabel;
+        sub = `${whenBit} via ${workRoute.providerLabel}${delayBit}`;
+      } else if (workRoute.warning) {
+        sub = workRoute.warning;
+      } else if (lv !== "now") {
+        sub = `Off-peak road time · add a free traffic key in Settings for ${workRoute.departLabel || formatClock12(lv)} rush-hour traffic`;
+      } else {
+        sub = "Off-peak road route · add a free traffic key in Settings for live & rush-hour traffic";
+      }
+    } else {
+      stat = "Calculating driving route…";
+      sub = dirTo ? "Road route from your spot to work" : "Road route from work to your spot";
+    }
+
+    const gmaps = googleMapsDriveUrl(mePos, work);
+    const customTimeVal = lv === "now" ? "" : lv;
+    const panel = document.getElementById("workSettingsPanel");
+    const settingsOpen = Boolean(panel && !panel.hidden);
+    return `
+      <div class="commute-row" role="group" aria-label="Commute direction">
+        <button type="button" class="mini-chip" data-commute-dir="to" aria-pressed="${dirTo}">To work</button>
+        <button type="button" class="mini-chip" data-commute-dir="from" aria-pressed="${!dirTo}">From work</button>
+      </div>
+      <div class="commute-row" role="group" aria-label="Departure time">
+        <button type="button" class="mini-chip" data-leave-preset="now" aria-pressed="${lv === "now"}">Leave now</button>
+        <button type="button" class="mini-chip" data-leave-preset="08:00" aria-pressed="${lv === "08:00"}">8:00 AM</button>
+        <button type="button" class="mini-chip" data-leave-preset="17:15" aria-pressed="${lv === "17:15"}">5:15 PM</button>
+        <input type="time" class="commute-time-input" data-leave-input aria-label="Custom weekday leave time" value="${escapeHtml(customTimeVal)}">
+      </div>
+      <p class="commute-stat">${escapeHtml(stat)}</p>
+      <p class="commute-sub">${escapeHtml(sub)}</p>
+      <p class="commute-addr"><strong>Work:</strong> ${escapeHtml(work.address)}</p>
+      <div class="commute-actions">
+        ${!mePos ? `<button type="button" class="mini-chip" data-start-locate>My location</button>` : ""}
+        ${mePos && workRoute && workRoute.geometry ? `<button type="button" class="mini-chip" data-fit-work-route>Show route</button>` : ""}
+        <a class="mini-chip" href="${escapeHtml(gmaps)}" target="_blank" rel="noopener noreferrer">Google Maps ↗</a>
+        <button type="button" class="mini-chip" data-toggle-work-settings aria-pressed="${settingsOpen}">Settings</button>
+      </div>`;
+  }
+  function workSettingsHtml() {
+    const isCustomAddr = work.address.trim().toLowerCase() !== DEFAULT_WORK.address.toLowerCase();
+    const hasKey = Boolean(String(work.apiKey || "").trim());
+    const prov = work.provider || "auto";
+    return `
+      <div id="workSettingsPanel" class="work-settings" hidden>
+        <div class="work-field">
+          <label class="field-label" for="workAddrInput">Work address</label>
+          <input id="workAddrInput" class="field-input" type="text" value="${escapeHtml(work.address)}" placeholder="${escapeHtml(DEFAULT_WORK.address)}" autocomplete="street-address">
+          <div class="field-row">
+            <button type="button" class="btn-inline primary" data-save-work-addr>${workSaving ? "Saving…" : "Save address"}</button>
+            ${isCustomAddr ? `<button type="button" class="btn-inline" data-reset-work-addr>Reset default</button>` : ""}
+          </div>
+        </div>
+        <div class="work-field">
+          <label class="field-label" for="workProviderSelect">Rush-hour traffic API key (optional, stored in this browser)</label>
+          <select id="workProviderSelect" class="field-select">
+            <option value="auto"${prov === "auto" ? " selected" : ""}>Auto-detect provider</option>
+            <option value="tomtom"${prov === "tomtom" ? " selected" : ""}>TomTom (2,500/day free)</option>
+            <option value="mapbox"${prov === "mapbox" ? " selected" : ""}>Mapbox (pk.* token)</option>
+            <option value="here"${prov === "here" ? " selected" : ""}>HERE Routing v8</option>
+          </select>
+          <div class="field-row">
+            <input id="workKeyInput" class="field-input" type="password" value="${escapeHtml(work.apiKey)}" placeholder="Paste TomTom, Mapbox, or HERE key…" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="field-row">
+            <button type="button" class="btn-inline primary" data-save-work-key>Save key</button>
+            ${hasKey ? `<button type="button" class="btn-inline" data-clear-work-key>Clear key</button>` : ""}
+            <button type="button" class="btn-inline" data-cancel-work-settings>Cancel</button>
+          </div>
+          <p class="hint">Without a key, driving distance and route use OSRM off-peak roads. A free TomTom, Mapbox, or HERE key unlocks historical weekday departure-time traffic.</p>
+        </div>
+      </div>`;
+  }
+  function commuteBoxHtml() {
+    return `<div id="workCommuteBox" class="commute-box"><div id="commuteDynamic">${commuteDynamicHtml()}</div>${workSettingsHtml()}</div>`;
+  }
+  function updateCommuteDom() {
+    const dyn = document.getElementById("commuteDynamic");
+    if (dyn) dyn.innerHTML = commuteDynamicHtml();
+  }
+  async function refreshWorkRoute(force = false) {
+    if (!mePos) return;
+    const now = Date.now();
+    if (!force && workRouteOrigin && (workRouteState === "ready" || workRouteState === "loading")) {
+      const movedMeters = distanceMiles(workRouteOrigin.lat, workRouteOrigin.lng, mePos.lat, mePos.lng) * 1609.344;
+      if (movedMeters < 35 || (now - workRouteAt < 4000 && movedMeters < 150)) return;
+    }
+    if (workRouteAbort) workRouteAbort.abort();
+    const ctrl = new AbortController();
+    workRouteAbort = ctrl;
+    workRouteOrigin = { lat: mePos.lat, lng: mePos.lng };
+    workRouteAt = now;
+    workRouteState = "loading";
+    updateCommuteDom();
+
+    const orig = work.direction === "from"
+      ? { lat: work.lat, lng: work.lng }
+      : { lat: mePos.lat, lng: mePos.lng };
+    const dest = work.direction === "from"
+      ? { lat: mePos.lat, lng: mePos.lng }
+      : { lat: work.lat, lng: work.lng };
+
+    try {
+      const result = await fetchDrivingRoute(orig, dest, work, ctrl.signal);
+      if (ctrl.signal.aborted) return;
+      workRoute = result;
+      workRouteState = "ready";
+      updateCommuteDom();
+      syncWorkRoute();
+    } catch (err) {
+      if (ctrl.signal.aborted) return;
+      workRouteState = "error";
+      updateCommuteDom();
+      syncWorkRoute();
+    }
+  }
+  function workHtml() {
+    const suburb = findContaining(places, work.lat, work.lng);
+    const county = findContaining(counties, work.lat, work.lng);
+    const where = [suburb ? suburb.properties.name : "", county ? county.properties.name + " County" : ""].filter(Boolean).join(" · ");
+    return `
+      <div class="sheet-top"><div>
+        <p class="eyebrow">${pill("Work", "#9a4a17")}</p>
+        <h2 id="sheetTitle">Work commute</h2>
+      </div></div>
+      ${where ? `<p class="area">${escapeHtml(where)}</p>` : ""}
+      ${commuteBoxHtml()}
+      ${closeButton()}`;
+  }
+  function openWork() {
+    pauseFollow();
+    if (selected) {
+      selected = null;
+      renderPins();
+    }
+    selectedArea = "";
+    if (meMarker) meMarker.setIcon(meIcon(false));
+    syncPolygons();
+    sheetEl.dataset.mode = "work";
+    showSheet(workHtml());
+    syncWorkMarker();
+    syncWorkRoute();
+    if (mePos && workRouteState === "idle") refreshWorkRoute(true);
+    const zoom = Math.max(map.getZoom(), 14);
+    map.flyTo(targetCenterFor(work.lat, work.lng, zoom), zoom, { duration: 0.4 });
   }
   function paintLocate() {
     let state = "idle";
@@ -1605,6 +2327,7 @@ async function boot() {
         <h2 id="sheetTitle">${escapeHtml(title)}</h2>
       </div></div>
       <p class="area">${escapeHtml(centerLine)}</p>
+      ${commuteBoxHtml()}
       ${areasBlock}
       ${nearbyHtml}
       <button type="button" class="secondary-bar" data-stop-locate>Stop sharing location</button>
@@ -1622,6 +2345,9 @@ async function boot() {
     meSheetPos = { lat: mePos.lat, lng: mePos.lng };
     sheetEl.dataset.mode = "me";
     showSheet(meHtml());
+    syncWorkMarker();
+    syncWorkRoute();
+    if (workRouteState === "idle" || workRouteState === "error") refreshWorkRoute(true);
     const zoom = Math.max(map.getZoom(), 14);
     map.flyTo(targetCenterFor(mePos.lat, mePos.lng, zoom), zoom, { duration: 0.35 });
   }
@@ -1690,12 +2416,20 @@ async function boot() {
       showToast("You are " + Math.round(milesFromCenter) + " miles from downtown Birmingham, outside the 50-mile map data.", 4800);
     }
 
+    refreshWorkRoute(firstFix);
+
     if (isSheetOnMe) {
+      const panel = document.getElementById("workSettingsPanel");
+      const settingsOpen = panel && !panel.hidden;
       const sheetMoved = !meSheetPos || distanceMiles(meSheetPos.lat, meSheetPos.lng, lat, lng) * 1609.344 > 25;
-      if (firstFix || sheetMoved) {
+      if (!settingsOpen && (firstFix || sheetMoved)) {
         meSheetPos = { lat, lng };
         sheetBody.innerHTML = meHtml();
+      } else {
+        updateCommuteDom();
       }
+    } else if (!sheetEl.hidden && sheetEl.dataset.mode === "work") {
+      updateCommuteDom();
     }
     paintLocate();
   }
@@ -1752,12 +2486,19 @@ async function boot() {
     if (watchId !== null && navigator.geolocation) {
       navigator.geolocation.clearWatch(watchId);
     }
+    if (workRouteAbort) {
+      workRouteAbort.abort();
+      workRouteAbort = null;
+    }
     watchId = null;
     watchCoarse = false;
     locating = false;
     following = false;
     mePos = null;
     meSheetPos = null;
+    workRoute = null;
+    workRouteState = "idle";
+    workRouteOrigin = null;
     if (meMarker) {
       map.removeLayer(meMarker);
       meMarker = null;
@@ -1766,8 +2507,11 @@ async function boot() {
       map.removeLayer(meHalo);
       meHalo = null;
     }
+    syncWorkRoute();
     if (!sheetEl.hidden && sheetEl.dataset.mode === "me") {
       closeSheet();
+    } else if (!sheetEl.hidden && sheetEl.dataset.mode === "work") {
+      updateCommuteDom();
     }
     paintLocate();
     if (notify) showToast("Location sharing turned off.");
@@ -1831,6 +2575,7 @@ async function boot() {
       following = true;
       paintLocate();
       flyToMe();
+      refreshWorkRoute(false);
       return;
     }
     stopLocate(true);
@@ -1862,9 +2607,182 @@ async function boot() {
     syncPolygons();
     searchInput.focus();
   });
+  async function saveWorkAddress(nextAddress) {
+    if (workSaving) return;
+    const clean = String(nextAddress || "").trim();
+    if (!clean) {
+      showToast("Enter a street address or city for Work.");
+      return;
+    }
+    workSaving = true;
+    const btn = sheetEl.querySelector("[data-save-work-addr]");
+    if (btn) btn.textContent = "Saving…";
+    try {
+      const coords = await geocodeWorkAddress(clean, work);
+      work.address = clean;
+      work.lat = coords.lat;
+      work.lng = coords.lng;
+      persistWork();
+      workRoute = null;
+      workRouteState = "idle";
+      workRouteOrigin = null;
+      syncWorkMarker();
+      syncWorkRoute();
+      if (!sheetEl.hidden && (sheetEl.dataset.mode === "me" || sheetEl.dataset.mode === "work")) {
+        sheetBody.innerHTML = sheetEl.dataset.mode === "work" ? workHtml() : meHtml();
+      }
+      if (mePos) refreshWorkRoute(true);
+      showToast("Work address updated.");
+    } catch (err) {
+      showToast(err && err.message ? err.message : "Could not find that address.", 4600);
+      if (btn) btn.textContent = "Save address";
+    } finally {
+      workSaving = false;
+    }
+  }
+
+  sheetEl.addEventListener("change", (event) => {
+    const leaveInput = event.target.closest("[data-leave-input]");
+    if (leaveInput) {
+      work.leaveTime = leaveInput.value || "now";
+      persistWork();
+      workRoute = null;
+      updateCommuteDom();
+      if (mePos) refreshWorkRoute(true);
+      return;
+    }
+    const provSelect = event.target.closest("#workProviderSelect");
+    if (provSelect) {
+      work.provider = provSelect.value;
+      persistWork();
+      if (work.apiKey && mePos) refreshWorkRoute(true);
+    }
+  });
+  sheetEl.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    if (event.target.closest("#workAddrInput")) {
+      event.preventDefault();
+      saveWorkAddress(event.target.value);
+    } else if (event.target.closest("#workKeyInput")) {
+      event.preventDefault();
+      const provEl = document.getElementById("workProviderSelect");
+      if (provEl) work.provider = provEl.value;
+      work.apiKey = event.target.value.trim();
+      persistWork();
+      workRoute = null;
+      if (!sheetEl.hidden && (sheetEl.dataset.mode === "me" || sheetEl.dataset.mode === "work")) {
+        sheetBody.innerHTML = sheetEl.dataset.mode === "work" ? workHtml() : meHtml();
+      }
+      if (mePos) refreshWorkRoute(true);
+      showToast(work.apiKey ? "Traffic API key saved in this browser." : "Traffic API key cleared.");
+    }
+  });
   sheetEl.addEventListener("click", (event) => {
     if (event.target.closest("[data-stop-locate]")) {
       stopLocate(true);
+      return;
+    }
+    if (event.target.closest("[data-start-locate]")) {
+      startLocate();
+      return;
+    }
+    const dirBtn = event.target.closest("[data-commute-dir]");
+    if (dirBtn) {
+      const nextDir = dirBtn.dataset.commuteDir === "from" ? "from" : "to";
+      if (work.direction !== nextDir) {
+        work.direction = nextDir;
+        persistWork();
+        workRoute = null;
+        syncWorkRoute();
+        updateCommuteDom();
+        if (mePos) refreshWorkRoute(true);
+      }
+      return;
+    }
+    const presetBtn = event.target.closest("[data-leave-preset]");
+    if (presetBtn) {
+      const nextLeave = presetBtn.dataset.leavePreset || "now";
+      if (nextLeave === "08:00" && work.direction !== "to") work.direction = "to";
+      if (nextLeave === "17:15" && work.direction !== "from") work.direction = "from";
+      work.leaveTime = nextLeave;
+      persistWork();
+      workRoute = null;
+      syncWorkRoute();
+      updateCommuteDom();
+      if (mePos) refreshWorkRoute(true);
+      return;
+    }
+    if (event.target.closest("[data-fit-work-route]")) {
+      fitWorkRoute();
+      return;
+    }
+    if (event.target.closest("[data-toggle-work-settings]")) {
+      const panel = document.getElementById("workSettingsPanel");
+      if (panel) {
+        panel.hidden = !panel.hidden;
+        const toggleBtn = sheetEl.querySelector("[data-toggle-work-settings]");
+        if (toggleBtn) toggleBtn.setAttribute("aria-pressed", String(!panel.hidden));
+      }
+      return;
+    }
+    if (event.target.closest("[data-cancel-work-settings]")) {
+      const panel = document.getElementById("workSettingsPanel");
+      const addrInput = document.getElementById("workAddrInput");
+      const keyInput = document.getElementById("workKeyInput");
+      const provSelect = document.getElementById("workProviderSelect");
+      if (addrInput) addrInput.value = work.address;
+      if (keyInput) keyInput.value = work.apiKey;
+      if (provSelect) provSelect.value = work.provider || "auto";
+      if (panel) panel.hidden = true;
+      const toggleBtn = sheetEl.querySelector("[data-toggle-work-settings]");
+      if (toggleBtn) toggleBtn.setAttribute("aria-pressed", "false");
+      return;
+    }
+    if (event.target.closest("[data-save-work-addr]")) {
+      const input = document.getElementById("workAddrInput");
+      if (input) saveWorkAddress(input.value);
+      return;
+    }
+    if (event.target.closest("[data-reset-work-addr]")) {
+      work.address = DEFAULT_WORK.address;
+      work.lat = DEFAULT_WORK.lat;
+      work.lng = DEFAULT_WORK.lng;
+      persistWork();
+      workRoute = null;
+      workRouteState = "idle";
+      workRouteOrigin = null;
+      syncWorkMarker();
+      syncWorkRoute();
+      if (!sheetEl.hidden && (sheetEl.dataset.mode === "me" || sheetEl.dataset.mode === "work")) {
+        sheetBody.innerHTML = sheetEl.dataset.mode === "work" ? workHtml() : meHtml();
+      }
+      if (mePos) refreshWorkRoute(true);
+      showToast("Reset work address to 2204 Lakeshore Dr #325.");
+      return;
+    }
+    if (event.target.closest("[data-save-work-key]")) {
+      const keyInput = document.getElementById("workKeyInput");
+      const provSelect = document.getElementById("workProviderSelect");
+      if (provSelect) work.provider = provSelect.value;
+      work.apiKey = keyInput ? keyInput.value.trim() : "";
+      persistWork();
+      workRoute = null;
+      if (!sheetEl.hidden && (sheetEl.dataset.mode === "me" || sheetEl.dataset.mode === "work")) {
+        sheetBody.innerHTML = sheetEl.dataset.mode === "work" ? workHtml() : meHtml();
+      }
+      if (mePos) refreshWorkRoute(true);
+      showToast(work.apiKey ? "Traffic API key saved in this browser." : "Traffic API key cleared.");
+      return;
+    }
+    if (event.target.closest("[data-clear-work-key]")) {
+      work.apiKey = "";
+      persistWork();
+      workRoute = null;
+      if (!sheetEl.hidden && (sheetEl.dataset.mode === "me" || sheetEl.dataset.mode === "work")) {
+        sheetBody.innerHTML = sheetEl.dataset.mode === "work" ? workHtml() : meHtml();
+      }
+      if (mePos) refreshWorkRoute(true);
+      showToast("Traffic API key cleared.");
       return;
     }
     if (event.target.closest("[data-close]")) {
@@ -1901,8 +2819,17 @@ async function boot() {
   if (window.ResizeObserver) new ResizeObserver(placeChrome).observe(document.querySelector("header"));
 
   refresh();
+  syncWorkMarker();
   fitHome();
   placeChrome();
+}
+
+function readWorkSaved() {
+  try {
+    return JSON.parse(localStorage.getItem("bre-work") || "{}");
+  } catch (error) {
+    return {};
+  }
 }
 
 function readSaved() {
