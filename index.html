@@ -50,7 +50,7 @@
   }
   .title-row {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: 12px;
     margin-bottom: 8px;
@@ -69,6 +69,35 @@
     color: inherit;
     font: inherit;
     cursor: pointer;
+  }
+  .brand-nav { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .page-switch {
+    display: inline-flex;
+    flex: none;
+    padding: 2px;
+    border-radius: 999px;
+    background: rgba(36, 28, 22, 0.08);
+  }
+  .page-tab {
+    padding: 4px 11px;
+    border-radius: 999px;
+    color: var(--ink);
+    font: 650 12.5px/1.2 "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    text-decoration: none;
+  }
+  .page-tab.active { background: var(--card); box-shadow: 0 1px 3px rgba(36, 28, 22, 0.15); }
+  .sheet-link {
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    margin-top: 12px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font: 650 14px/1 "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    text-decoration: none;
   }
   #count {
     margin: 0;
@@ -693,7 +722,13 @@
 <body>
 <header>
   <div class="title-row">
-    <h1><button type="button" id="home" title="Show the 50-mile map">Birmingham</button></h1>
+    <div class="brand-nav">
+      <h1><button type="button" id="home" title="Show the 50-mile map">Birmingham</button></h1>
+      <nav class="page-switch" aria-label="Pages">
+        <a href="index.html" class="page-tab active" aria-current="page">Map</a>
+        <a href="finances.html" class="page-tab">Finances</a>
+      </nav>
+    </div>
     <p id="count" aria-live="polite">Loading map…</p>
   </div>
   <form id="search" role="search">
@@ -1706,6 +1741,9 @@ async function boot() {
       ${where ? `<p class="addr">${escapeHtml(where)}</p>` : ""}
       ${closeButton()}`;
   }
+  function financesLink(place) {
+    return `<a class="sheet-link" href="finances.html?place=${encodeURIComponent(place)}">Estimate buying costs in ${escapeHtml(place)}</a>`;
+  }
   function areaHtml(group, feature) {
     const props = feature.properties;
     if (group === "suburbs") {
@@ -1716,6 +1754,7 @@ async function boot() {
         </div></div>
         ${props.counties ? `<p class="note">${escapeHtml(countyPhrase(props.counties))}</p>` : ""}
         <p class="hint">City and town limits from the Census. A place can sit in more than one county.</p>
+        ${financesLink(props.name)}
         ${closeButton()}`;
     }
     if (group === "counties") {
@@ -1735,6 +1774,7 @@ async function boot() {
         </div></div>
         <p class="note">${escapeHtml(props.city || "")}</p>
         <p class="hint">${escapeHtml(props.note || "")}</p>
+        ${props.city ? financesLink(props.city) : ""}
         ${closeButton()}`;
     }
     return `

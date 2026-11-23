@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Birmingham">
+<meta name="theme-color" content="#f5f5f7">
+<title>Home finances · Birmingham</title>
+<style>
+  :root {
+    --ink: #1d1d1f;
+    --muted: #6e6e73;
+    --faint: #86868b;
+    --bg: #f5f5f7;
+    --card: #ffffff;
+    --line: #e5e5ea;
+    --soft: #f2f2f7;
+    --blue: #0071e3;
+    --green: #1f9d55;
+    --orange: #e98a00;
+    --red: #e0342b;
+    --c-principal: #0071e3;
+    --c-interest: #64b5f6;
+    --c-tax: #af52de;
+    --c-ins: #ff9f0a;
+    --c-hoa: #34c759;
+    --c-pmi: #ff3b30;
+    --c-down: #0071e3;
+    --c-closing: #5856d6;
+    --c-agent: #af52de;
+    --c-insp: #ff9f0a;
+    --c-moving: #34c759;
+    --c-reserve: #30b0c7;
+    --radius: 22px;
+    --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+  .num, input, .ribbon strong, td, th { font-variant-numeric: tabular-nums; }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Header */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(245, 245, 247, 0.78);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    padding: calc(8px + env(safe-area-inset-top)) 16px 8px;
+  }
+  .topbar-inner { max-width: 1180px; margin: 0 auto; }
+  .brand-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand {
+    margin: 0;
+    font-family: Georgia, "Iowan Old Style", Palatino, serif;
+    font-size: 21px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .brand a { color: inherit; text-decoration: none; }
+  .page-switch {
+    display: inline-flex;
+    padding: 2px;
+    border-radius: 999px;
+    background: rgba(118, 118, 128, 0.12);
+  }
+  .page-tab {
+    padding: 5px 14px;
+    border-radius: 999px;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .page-tab:hover { text-decoration: none; }
+  .page-tab.active { background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
+  .ribbon {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .ribbon::-webkit-scrollbar { display: none; }
+  .ribbon div {
+    flex: 1 0 auto;
+    min-width: 118px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  .ribbon span { display: block; font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: 0.01em; }
+  .ribbon strong { display: block; font-size: 16px; font-weight: 650; letter-spacing: -0.01em; }
+  .ribbon .good strong { color: var(--green); }
+  .ribbon .warn strong { color: var(--orange); }
+  .ribbon .bad strong { color: var(--red); }
+
+  /* Layout */
+  main { max-width: 1180px; margin: 0 auto; padding: 28px 16px 80px; }
+  .hero { text-align: center; margin: 12px 0 28px; }
+  .hero h2 {
+    margin: 0;
+    font-size: clamp(34px, 6vw, 56px);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+  }
+  .hero p { margin: 10px auto 0; max-width: 640px; color: var(--muted); font-size: 18px; }
+  .hero-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .section-head { margin: 52px 0 16px; }
+  .section-head h2 { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -0.03em; }
+  .section-head p { margin: 4px 0 0; color: var(--muted); font-size: 16px; max-width: 760px; }
+  .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+  .card {
+    grid-column: span 12;
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 28px rgba(0, 0, 0, 0.04);
+    min-width: 0;
+  }
+  @media (min-width: 760px) {
+    .s4 { grid-column: span 6; }
+    .s5 { grid-column: span 6; }
+    .s6 { grid-column: span 6; }
+    .s7 { grid-column: span 12; }
+    .s8 { grid-column: span 12; }
+  }
+  @media (min-width: 1020px) {
+    .s4 { grid-column: span 4; }
+    .s5 { grid-column: span 5; }
+    .s7 { grid-column: span 7; }
+    .s8 { grid-column: span 8; }
+  }
+  .card h3 { margin: 0 0 2px; font-size: 19px; font-weight: 650; letter-spacing: -0.015em; }
+  .card .sub { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+  .eyebrow { margin: 0 0 6px; color: var(--muted); font-size: 12px; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase; }
+  .big { font-size: 40px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.05; }
+  .mid { font-size: 26px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.1; }
+  .muted { color: var(--muted); }
+  .small { font-size: 13px; }
+  .tone-good { color: var(--green); }
+  .tone-warn { color: var(--orange); }
+  .tone-bad { color: var(--red); }
+
+  /* Fields */
+  .field { margin: 0 0 18px; }
+  .field:last-child { margin-bottom: 0; }
+  .field-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+  .field-top label, .field-label { font-size: 14px; font-weight: 600; }
+  .field-top output { font-size: 15px; font-weight: 650; }
+  .hint { margin: 6px 0 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
+  .money {
+    display: flex;
+    align-items: center;
+    height: 44px;
+    padding: 0 12px;
+    border-radius: 12px;
+    background: var(--soft);
+    border: 1px solid transparent;
+  }
+  .money:focus-within { border-color: var(--blue); background: #fff; box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.12); }
+  .money span { color: var(--muted); font-weight: 600; }
+  .money input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--ink);
+    font: 600 17px/1 var(--font);
+    padding: 0 4px;
+  }
+  .money.compact { height: 36px; border-radius: 10px; }
+  .money.compact input { font-size: 15px; }
+  input[type="number"]::-webkit-inner-spin-button { opacity: 0.4; }
+  input[type="range"] {
+    --fill: 50%;
+    width: 100%;
+    height: 28px;
+    margin: 6px 0 0;
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 99px;
+    background: linear-gradient(to right, var(--blue) var(--fill), #e3e3e8 var(--fill));
+  }
+  input[type="range"]::-moz-range-track { height: 6px; border-radius: 99px; background: #e3e3e8; }
+  input[type="range"]::-moz-range-progress { height: 6px; border-radius: 99px; background: var(--blue); }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 26px;
+    height: 26px;
+    margin-top: -10px;
+    border-radius: 50%;
+    background: #fff;
+    border: 0.5px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), 0 0 1px rgba(0, 0, 0, 0.3);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #fff;
+    border: 0.5px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+  input[type="range"]:focus-visible { outline: none; }
+  input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.25), 0 2px 6px rgba(0, 0, 0, 0.2); }
+  .range-scale { display: flex; justify-content: space-between; color: var(--faint); font-size: 11px; margin-top: 2px; }
+  .seg {
+    display: inline-flex;
+    flex-wrap: wrap;
+    padding: 2px;
+    border-radius: 10px;
+    background: rgba(118, 118, 128, 0.12);
+    gap: 2px;
+  }
+  .seg button {
+    border: 0;
+    background: transparent;
+    padding: 6px 12px;
+    border-radius: 8px;
+    color: var(--ink);
+    font: 600 13px/1.2 var(--font);
+    cursor: pointer;
+  }
+  .seg button[aria-pressed="true"] { background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.14); }
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pill-btn {
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    padding: 6px 11px;
+    border-radius: 999px;
+    font: 600 12.5px/1.2 var(--font);
+    cursor: pointer;
+  }
+  .pill-btn[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 0;
+    background: var(--blue);
+    color: #fff;
+    font: 600 14px/1 var(--font);
+    cursor: pointer;
+  }
+  .btn.ghost { background: rgba(0, 113, 227, 0.1); color: var(--blue); }
+  .btn.plain { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+  .btn:hover { filter: brightness(0.97); }
+  .switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; }
+  .switch input { position: absolute; opacity: 0; pointer-events: none; }
+  .switch .track {
+    flex: none;
+    position: relative;
+    width: 44px;
+    height: 26px;
+    border-radius: 99px;
+    background: #e3e3e8;
+    transition: background 0.2s;
+  }
+  .switch .track::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s;
+  }
+  .switch input:checked + .track { background: var(--green); }
+  .switch input:checked + .track::after { transform: translateX(18px); }
+  .switch input:focus-visible + .track { box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.25); }
+
+  /* Notes */
+  .note {
+    border-radius: 16px;
+    padding: 14px 16px;
+    background: #f0f6ff;
+    color: #1d3b66;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .note strong { color: #0b2a55; }
+  .note.warm { background: #fff6e8; color: #6b4300; }
+  .note.warm strong { color: #4d3000; }
+  .note ul { margin: 6px 0 0; padding-left: 18px; }
+  .note + .note, .field + .note, .note + .field { margin-top: 14px; }
+
+  /* Affordability hero */
+  .afford { display: grid; gap: 22px; }
+  @media (min-width: 760px) { .afford { grid-template-columns: 220px 1fr; align-items: center; } }
+  .ring-wrap { position: relative; width: 220px; height: 220px; margin: 0 auto; }
+  .ring-wrap svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .ring-center strong { font-size: 30px; font-weight: 700; letter-spacing: -0.03em; }
+  .ring-center span { font-size: 12px; color: var(--muted); }
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 650;
+  }
+  .status.good { background: #e7f6ec; color: var(--green); }
+  .status.warn { background: #fff3df; color: #b06800; }
+  .status.bad { background: #fde9e8; color: var(--red); }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin: 14px 0 18px; }
+  .kpi span { display: block; font-size: 12px; color: var(--muted); font-weight: 600; }
+  .kpi strong { display: block; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+  .gauge { position: relative; margin-top: 6px; }
+  .gauge-bar { display: flex; height: 14px; border-radius: 99px; overflow: hidden; background: #ececf0; }
+  .gauge-bar i { display: block; height: 100%; }
+  .gauge-mark {
+    position: absolute;
+    top: -6px;
+    bottom: -6px;
+    width: 2px;
+    background: var(--ink);
+    border-radius: 2px;
+  }
+  .gauge-mark::after {
+    content: attr(data-label);
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: 650;
+  }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; font-size: 13px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
+  .legend b { font-weight: 650; }
+
+  /* Line item tables */
+  .lines { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .lines td, .lines th { padding: 9px 0; border-top: 1px solid var(--line); vertical-align: middle; }
+  .lines th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 650; letter-spacing: 0.04em; text-transform: uppercase; padding-top: 16px; border-top: 0; }
+  .lines td:last-child { text-align: right; font-weight: 600; white-space: nowrap; padding-left: 12px; }
+  .lines .item-note { display: block; color: var(--muted); font-size: 12px; }
+  .lines .param { width: 112px; min-width: 112px; padding-left: 10px; }
+  .lines .param .money { width: 100%; height: 32px; padding: 0 8px; border-radius: 8px; }
+  .lines .param .money input { width: 100%; font-size: 14px; padding: 0 2px; }
+  .stack { display: flex; flex-direction: column; gap: 16px; }
+  .stack > .card { grid-column: auto; }
+  .lines tr.total td { border-top: 2px solid var(--ink); font-weight: 700; font-size: 15px; }
+  .lines tr.credit td:last-child { color: var(--green); }
+  .lines tr.off td { color: var(--faint); }
+  .check { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; }
+  .check input { width: 18px; height: 18px; accent-color: var(--blue); }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .stat-line { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 14px; }
+  .stat-line:first-child { border-top: 0; }
+  .stat-line b { font-weight: 650; }
+
+  /* Total cash */
+  .total-card { background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%); }
+  .alloc { display: flex; height: 34px; border-radius: 10px; overflow: hidden; background: #ececf0; margin: 18px 0 10px; }
+  .alloc i { display: block; height: 100%; min-width: 2px; transition: width 0.3s ease; position: relative; }
+  .alloc i + i { box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.7); }
+  .total-grid { display: grid; gap: 14px; margin-top: 18px; }
+  @media (min-width: 760px) { .total-grid { grid-template-columns: 1fr 1fr 1.2fr; } }
+  .total-box { border-radius: 18px; background: var(--soft); padding: 16px; }
+  .total-box.grand { background: var(--ink); color: #fff; }
+  .total-box.grand .muted { color: rgba(255, 255, 255, 0.7); }
+  .progress { height: 10px; border-radius: 99px; background: #e3e3e8; overflow: hidden; margin-top: 10px; }
+  .progress i { display: block; height: 100%; background: var(--green); border-radius: 99px; transition: width 0.3s; }
+
+  /* Heatmap */
+  .heat-wrap { overflow-x: auto; margin-top: 6px; }
+  .heat { border-collapse: separate; border-spacing: 4px; margin: 0 auto; min-width: 560px; }
+  .heat th { font-size: 12px; color: var(--muted); font-weight: 650; padding: 4px 6px; white-space: nowrap; }
+  .heat th.rowh { text-align: right; }
+  .heat td { padding: 0; }
+  .heat button {
+    width: 100%;
+    min-width: 64px;
+    height: 44px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--bg-c);
+    color: #1d1d1f;
+    font: 650 13px/1.1 var(--font);
+    cursor: pointer;
+    transition: transform 0.12s ease;
+  }
+  .heat button small { display: block; font-size: 10.5px; font-weight: 500; opacity: 0.75; margin-top: 2px; }
+  .heat button:hover { transform: scale(1.05); }
+  .heat button.current { outline: 2.5px solid var(--ink); outline-offset: 1px; }
+  .heat-legend { display: flex; align-items: center; gap: 10px; justify-content: center; margin-top: 14px; font-size: 12px; color: var(--muted); }
+  .heat-legend i { width: 180px; height: 8px; border-radius: 99px; background: linear-gradient(to right, hsl(140 60% 78%), hsl(52 85% 82%), hsl(0 75% 80%)); }
+
+  /* Comparison */
+  .compare { width: 100%; border-collapse: collapse; font-size: 16px; }
+  .compare th, .compare td { border: 1px solid var(--line); padding: 14px 16px; text-align: left; vertical-align: middle; }
+  .compare thead th { font-size: 17px; font-weight: 700; background: var(--soft); }
+  .compare tbody th { font-weight: 650; width: 38%; }
+  .compare td { font-weight: 500; }
+  .compare tr.save td, .compare tr.save th { background: #f0faf3; }
+  .compare tr.save td:nth-child(2) { color: var(--green); font-weight: 700; }
+  .compare-wrap { overflow-x: auto; border-radius: 16px; }
+  .chart-wrap { position: relative; margin-top: 10px; }
+  .chart-wrap svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .chart-tip {
+    position: absolute;
+    pointer-events: none;
+    background: rgba(29, 29, 31, 0.92);
+    color: #fff;
+    border-radius: 12px;
+    padding: 8px 12px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    white-space: nowrap;
+    transform: translate(-50%, -100%);
+  }
+  .chart-tip[hidden] { display: none; }
+
+  .sources { margin-top: 56px; color: var(--muted); font-size: 12.5px; line-height: 1.6; }
+  .sources h3 { color: var(--ink); font-size: 14px; margin: 0 0 6px; }
+  .sources ul { margin: 0; padding-left: 18px; }
+  #toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    z-index: 100;
+    max-width: min(460px, calc(100% - 24px));
+    background: rgba(29, 29, 31, 0.94);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 14px;
+    font-size: 14px;
+  }
+  #toast[hidden] { display: none; }
+  #toast input { width: 100%; margin-top: 6px; font: 12px/1.3 ui-monospace, monospace; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand-row">
+      <h1 class="brand"><a href="index.html">Birmingham</a></h1>
+      <nav class="page-switch" aria-label="Pages">
+        <a href="index.html" class="page-tab">Map</a>
+        <a href="finances.html" class="page-tab active" aria-current="page">Finances</a>
+      </nav>
+    </div>
+    <div class="ribbon" aria-live="polite">
+      <div id="rbPayment"><span>Monthly payment</span><strong>—</strong></div>
+      <div id="rbShare"><span>Of take-home</span><strong>—</strong></div>
+      <div id="rbDelta"><span>Vs. 25% target</span><strong>—</strong></div>
+      <div id="rbMax"><span>Max home at 25%</span><strong>—</strong></div>
+      <div id="rbCash"><span>Cash on hand needed</span><strong>—</strong></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <h2>What house can you afford?</h2>
+    <p>Your payment against Dave Ramsey's 25% rule, plus every dollar you need in the bank to buy. Taxes, insurance, and fees start from Hoover, Alabama figures.</p>
+    <div class="hero-actions">
+      <button type="button" class="btn ghost" id="shareBtn">Copy scenario link</button>
+      <button type="button" class="btn plain" id="resetBtn">Reset to Hoover defaults</button>
+    </div>
+  </section>
+
+  <div class="grid">
+    <article class="card s5">
+      <p class="eyebrow">Income and home</p>
+      <div class="field">
+        <div class="field-top"><label for="takeHomeIn">Monthly take-home pay</label><output id="targetOut" class="muted small"></output></div>
+        <div class="money"><span>$</span><input id="takeHomeIn" type="number" inputmode="numeric" min="0" step="100" data-bind="takeHome"></div>
+        <input type="range" min="2000" max="30000" step="100" data-bind="takeHome" aria-label="Monthly take-home pay">
+        <p class="hint">After taxes and deductions, what actually lands in your account each month.</p>
+      </div>
+      <div class="field">
+        <div class="field-top"><label for="priceIn">Home price</label><output class="small muted">$1,000 steps</output></div>
+        <div class="money"><span>$</span><input id="priceIn" type="number" inputmode="numeric" min="50000" step="1000" data-bind="price"></div>
+        <input type="range" min="100000" max="1500000" step="1000" data-bind="price" aria-label="Home price">
+        <div class="range-scale"><span>$100K</span><span>$1.5M</span></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Loan used for the 25% check</div>
+        <div class="row" style="margin-top:6px">
+          <div class="seg" role="group" aria-label="Loan term">
+            <button type="button" data-seg="term" data-value="15">15-year fixed</button>
+            <button type="button" data-seg="term" data-value="30">30-year fixed</button>
+          </div>
+          <output id="termRateOut" class="small"></output>
+        </div>
+        <div id="rate15Field" style="margin-top:10px">
+          <input type="range" min="2" max="12" step="0.1" data-bind="rate15" aria-label="15-year rate">
+        </div>
+        <div id="rate30Field" style="margin-top:10px">
+          <input type="range" min="2" max="12" step="0.1" data-bind="rate30" aria-label="30-year rate">
+        </div>
+        <p class="hint">Ramsey recommends a 15-year fixed conventional loan. Rates move in 0.1% steps and stay in sync with the comparison below.</p>
+      </div>
+    </article>
+
+    <article class="card s7">
+      <p class="eyebrow">The 25% rule</p>
+      <div class="afford">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 120 120" id="ring" aria-hidden="true"></svg>
+          <div class="ring-center">
+            <span>All-in monthly</span>
+            <strong id="ringTotal">—</strong>
+            <span id="ringShare">—</span>
+          </div>
+        </div>
+        <div>
+          <span class="status" id="statusBadge">—</span>
+          <div class="big" id="deltaBig" style="margin-top:10px">—</div>
+          <p class="muted" id="deltaText" style="margin:4px 0 0">—</p>
+          <div class="kpis">
+            <div class="kpi"><span>Your 25% target</span><strong id="kTarget">—</strong></div>
+            <div class="kpi"><span>Max home at 25%</span><strong id="kMax">—</strong></div>
+            <div class="kpi"><span>Room in budget</span><strong id="kRoom">—</strong></div>
+          </div>
+          <div class="gauge" id="gauge">
+            <div class="gauge-bar" id="gaugeBar"></div>
+            <div class="gauge-mark" id="gaugeMark" data-label="25%"></div>
+          </div>
+          <div class="legend" id="payLegend"></div>
+          <div class="row" style="margin-top:16px">
+            <button type="button" class="btn" id="snapMaxBtn">Set price to max affordable</button>
+            <span class="small muted" id="maxNote"></span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="note">
+        <strong>Dave Ramsey's rule for an affordable house:</strong> keep your monthly payment at or under <strong>25% of your monthly take-home pay</strong>. That 25% limit includes
+        <strong>principal, interest, property taxes, homeowners insurance, homeowners association (HOA) fees, and private mortgage insurance (PMI)</strong>.
+        PMI isn't required when you put at least 20% down.
+      </div>
+    </article>
+  </div>
+
+  <div class="section-head">
+    <h2>Monthly payment</h2>
+    <p>Everything inside the 25%. Property taxes use 2026 Alabama millage, assessed at 10% of value for an owner-occupied home.</p>
+  </div>
+  <div class="grid">
+    <article class="card s7">
+      <h3>Property taxes</h3>
+      <p class="sub">Pick the area. Hoover in Jefferson County is the default.</p>
+      <div class="pills" id="areaPills" role="group" aria-label="Tax area"></div>
+      <div class="grid" style="margin-top:16px;gap:14px">
+        <div class="card s6" style="padding:0;box-shadow:none">
+          <div class="field">
+            <div class="field-top"><label for="millIn">Total millage</label><output class="small muted" id="effRate"></output></div>
+            <div class="money"><input id="millIn" type="number" step="0.1" min="0" data-bind="millage"><span>mills</span></div>
+            <p class="hint">1 mill is $1 per $1,000 of assessed value. Editing switches the area to Custom.</p>
+          </div>
+        </div>
+        <div class="card s6" style="padding:0;box-shadow:none">
+          <label class="switch">
+            <span><span class="field-label">Homestead (primary residence)</span><span class="hint" style="display:block;margin-top:2px">Class III, 10% assessment plus the standard H-1 exemption. Off is Class II at 20%.</span></span>
+            <input type="checkbox" data-bind="homestead"><span class="track"></span>
+          </label>
+        </div>
+      </div>
+      <div style="margin-top:14px" id="taxLines"></div>
+    </article>
+
+    <article class="card s5">
+      <h3>Insurance, HOA, and PMI</h3>
+      <p class="sub">The rest of the monthly payment.</p>
+      <div class="field">
+        <div class="field-top"><span class="field-label">Homeowners insurance</span><output id="insOut"></output></div>
+        <div class="seg" role="group" aria-label="Insurance mode">
+          <button type="button" data-seg="insMode" data-value="scale">Scale with price</button>
+          <button type="button" data-seg="insMode" data-value="fixed">Fixed amount</button>
+        </div>
+        <div id="insScale" style="margin-top:10px">
+          <div class="money compact"><input type="number" step="0.01" min="0" data-bind="insRate" aria-label="Insurance rate"><span>% of price / yr</span></div>
+        </div>
+        <div id="insFixed" style="margin-top:10px">
+          <div class="money compact"><span>$</span><input type="number" step="10" min="0" data-bind="insAnnual" aria-label="Annual insurance"><span>/ yr</span></div>
+        </div>
+        <p class="hint">Default $2,414 a year on a $300,000 Hoover home (Insurance.com 2026: $300K dwelling, $300K liability, $1,000 deductible). Census puts the Hoover median at $1,941 for homes with a mortgage.</p>
+      </div>
+      <div class="field">
+        <div class="field-top"><label for="hoaIn">HOA fee</label><output id="hoaOut"></output></div>
+        <div class="money compact"><span>$</span><input id="hoaIn" type="number" step="5" min="0" data-bind="hoa"><span>/ mo</span></div>
+        <input type="range" min="0" max="800" step="5" data-bind="hoa" aria-label="HOA fee">
+      </div>
+      <div class="field">
+        <div class="field-top"><span class="field-label">PMI</span><output id="pmiOut"></output></div>
+        <div id="pmiBody"></div>
+        <div id="pmiRateField" style="margin-top:8px">
+          <div class="field-top"><label class="small">PMI rate</label><output class="small" id="pmiRateOut"></output></div>
+          <input type="range" min="0.2" max="1.5" step="0.05" data-bind="pmiRate" aria-label="PMI rate">
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div class="section-head">
+    <h2>Cash to buy</h2>
+    <p>Down payment, closing costs, your agent, inspections, and the move. Each one adds to the cash you need on hand.</p>
+  </div>
+  <div class="grid">
+    <article class="card s5">
+      <h3>Down payment</h3>
+      <p class="sub">20% by default, so there's no PMI.</p>
+      <div class="mid" id="downBig">—</div>
+      <p class="muted small" id="downSub" style="margin:2px 0 14px">—</p>
+      <div class="field">
+        <div class="field-top"><label for="downUsdIn">Amount</label><output id="downPctOut"></output></div>
+        <div class="money"><span>$</span><input id="downUsdIn" type="number" step="1000" min="0" data-bind="downUsd"></div>
+        <input type="range" min="0" max="80" step="1" data-bind="downPct" aria-label="Down payment percent">
+        <div class="range-scale"><span>0%</span><span>20%</span><span>40%</span><span>60%</span><span>80%</span></div>
+      </div>
+      <button type="button" class="btn ghost" id="down20Btn">Reset to 20%</button>
+    </article>
+
+    <article class="card s7">
+      <div class="row">
+        <div><h3>Closing costs</h3><p class="sub" style="margin:0">Lender, title, recording, and prepaid taxes and insurance. Agent pay is separate.</p></div>
+        <div class="mid" id="closingBig">—</div>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <div class="seg" role="group" aria-label="Closing cost method">
+          <button type="button" data-seg="closingMode" data-value="quick">Quick estimate</button>
+          <button type="button" data-seg="closingMode" data-value="itemized">Itemized</button>
+        </div>
+        <span class="small muted" id="closingCompare"></span>
+      </div>
+      <div id="closingQuick" style="margin-top:16px">
+        <div class="seg" role="group" aria-label="Closing cost unit">
+          <button type="button" data-seg="closingUnit" data-value="pct">% of mortgage</button>
+          <button type="button" data-seg="closingUnit" data-value="usd">Dollar amount</button>
+        </div>
+        <div id="closingPctField" class="field" style="margin-top:12px">
+          <div class="field-top"><label>Percent of mortgage amount</label><output id="closingPctOut"></output></div>
+          <input type="range" min="0" max="6" step="0.1" data-bind="closingPct" aria-label="Closing cost percent">
+          <div class="range-scale"><span>0%</span><span>2%</span><span>4%</span><span>6%</span></div>
+        </div>
+        <div id="closingUsdField" class="field" style="margin-top:12px">
+          <div class="money"><span>$</span><input type="number" step="100" min="0" data-bind="closingUsd" aria-label="Closing costs in dollars"></div>
+        </div>
+      </div>
+      <div class="note warm" style="margin-top:14px">
+        <strong>Typically 2–5% of the mortgage amount.</strong> That's about $4,800–12,000 on a $240,000 mortgage. Closing costs cover property taxes, insurance items, and fees from your title company and lender. They vary by area and don't include your real estate agent. Pay them in cash instead of rolling them into the loan.
+      </div>
+      <details id="itemizedDetails" style="margin-top:14px">
+        <summary class="field-label" style="cursor:pointer">Line-item estimate for Hoover, Alabama</summary>
+        <table class="lines" id="itemTable"></table>
+        <p class="hint">Categories follow Ramsey's closing-costs guide. Recording taxes are Alabama law: $0.15 per $100 of the mortgage and $0.50 per $500 of deed value above the mortgage recorded with it. Jefferson and Shelby sellers usually buy the owner's title policy; the buyer pays the lender's policy. Choose Itemized above to use this total.</p>
+      </details>
+    </article>
+
+    <div class="card s5 stack" style="padding:0;background:none;box-shadow:none">
+    <article class="card">
+      <h3>Buyer's agent</h3>
+      <p class="sub">A separate line item, not a closing cost.</p>
+      <div class="mid" id="agentBig">—</div>
+      <p class="muted small" id="agentSub" style="margin:2px 0 14px"></p>
+      <div class="field">
+        <div class="field-top"><label>Agent fee</label><output id="agentPctOut"></output></div>
+        <input type="range" min="0" max="6" step="0.1" data-bind="agentPct" aria-label="Agent fee percent">
+        <div class="range-scale"><span>0%</span><span>3%</span><span>6%</span></div>
+      </div>
+      <div class="field">
+        <div class="field-top"><label>Seller pays</label><output id="sellerAgentOut"></output></div>
+        <input type="range" min="0" max="100" step="5" data-bind="sellerAgentShare" aria-label="Share of agent fee paid by seller">
+        <p class="hint">Since 2024, buyers agree to their agent's pay up front. Sellers may cover some or all of it. Plan for 0% unless it's in the contract.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <h3>Moving</h3>
+      <p class="sub">Amount to include moving truck, movers and supplies.</p>
+      <div class="mid" id="movingBig">—</div>
+      <div class="seg" role="group" aria-label="Moving cost unit" style="margin-top:12px">
+        <button type="button" data-seg="movingUnit" data-value="usd">Dollar amount</button>
+        <button type="button" data-seg="movingUnit" data-value="pct">% of price</button>
+      </div>
+      <div id="movingUsdField" class="field" style="margin-top:12px">
+        <div class="money"><span>$</span><input type="number" step="50" min="0" data-bind="moving" aria-label="Moving cost"></div>
+        <input type="range" min="0" max="10000" step="50" data-bind="moving" aria-label="Moving cost">
+      </div>
+      <div id="movingPctField" class="field" style="margin-top:12px">
+        <div class="field-top"><label>Percent of home price</label><output id="movingPctOut"></output></div>
+        <input type="range" min="0" max="3" step="0.05" data-bind="movingPct" aria-label="Moving cost percent">
+      </div>
+      <p class="hint">A few hundred dollars for a local DIY move, thousands for full-service movers or a long distance.</p>
+    </article>
+    </div>
+
+    <article class="card s7">
+      <h3>Inspections</h3>
+      <p class="sub">Birmingham and Hoover prices. Paid before closing. Pick the home size to price the general inspection.</p>
+      <div class="mid" id="inspBig">—</div>
+      <div class="pills" style="margin:12px 0 4px" id="sizePills" role="group" aria-label="Home size"></div>
+      <table class="lines" id="inspTable"></table>
+    </article>
+  </div>
+
+  <div class="section-head">
+    <h2>Emergency fund</h2>
+    <p>Keep 3–6 months of expenses in the bank after closing. A house will find ways to use it.</p>
+  </div>
+  <div class="grid">
+    <article class="card s7">
+      <div class="field">
+        <div class="field-top"><label for="expIn">Monthly living expenses</label><output id="expShare" class="small muted"></output></div>
+        <div class="money"><span>$</span><input id="expIn" type="number" step="50" min="0" data-bind="expenses"></div>
+        <input type="range" min="1000" max="20000" step="50" data-bind="expenses" aria-label="Monthly living expenses">
+        <div class="row" style="margin-top:8px">
+          <button type="button" class="btn ghost" id="estExpBtn">Estimate from new payment</button>
+          <span class="hint" style="margin:0">New all-in house payment plus 25% of take-home for food, utilities, gas, and insurance.</span>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-top"><label>Months saved</label><output id="monthsOut"></output></div>
+        <input type="range" min="3" max="6" step="1" data-bind="reserveMonths" aria-label="Months of expenses">
+        <div class="range-scale"><span>3</span><span>4</span><span>5</span><span>6</span></div>
+      </div>
+    </article>
+    <article class="card s5" style="display:flex;flex-direction:column;justify-content:center">
+      <p class="eyebrow">Keep in the bank</p>
+      <div class="big" id="reserveBig">—</div>
+      <p class="muted" id="reserveSub" style="margin:6px 0 0"></p>
+    </article>
+  </div>
+
+  <div class="section-head">
+    <h2>Total cash on hand needed</h2>
+    <p>Everything due before and at closing, plus the emergency fund that stays in the bank.</p>
+  </div>
+  <article class="card total-card">
+    <div class="row">
+      <div><p class="eyebrow">Total</p><div class="big" id="grandBig">—</div></div>
+      <div style="text-align:right"><p class="eyebrow">Price multiple</p><div class="mid" id="grandPct">—</div></div>
+    </div>
+    <div class="alloc" id="allocBar" role="img" aria-label="Share of cash by category"></div>
+    <div class="legend" id="allocLegend"></div>
+    <div class="total-grid">
+      <div class="total-box">
+        <p class="eyebrow">Cash to close and move</p>
+        <div class="mid" id="subA">—</div>
+        <div id="subALines" style="margin-top:10px"></div>
+      </div>
+      <div class="total-box">
+        <p class="eyebrow">Emergency fund</p>
+        <div class="mid" id="subB">—</div>
+        <div id="subBLines" style="margin-top:10px"></div>
+      </div>
+      <div class="total-box grand">
+        <p class="eyebrow" style="color:rgba(255,255,255,.7)">Your savings</p>
+        <div class="field" style="margin:8px 0 10px">
+          <div class="field-top"><label for="savedIn" style="color:#fff">Cash saved today</label></div>
+          <div class="money" style="background:rgba(255,255,255,.12)"><span style="color:rgba(255,255,255,.7)">$</span><input id="savedIn" type="number" step="500" min="0" data-bind="saved" style="color:#fff"></div>
+        </div>
+        <div class="field" style="margin:0 0 10px">
+          <div class="field-top"><label for="saveRateIn" style="color:#fff">Saving per month</label></div>
+          <div class="money" style="background:rgba(255,255,255,.12)"><span style="color:rgba(255,255,255,.7)">$</span><input id="saveRateIn" type="number" step="100" min="0" data-bind="monthlySave" style="color:#fff"></div>
+        </div>
+        <div class="progress"><i id="fundBar"></i></div>
+        <p class="small" id="fundText" style="margin:8px 0 0"></p>
+      </div>
+    </div>
+  </article>
+
+  <div class="section-head">
+    <h2>Price and rate heatmap</h2>
+    <p>How far each price and rate lands from your 25% target, using your current down payment, taxes, and term. Tap a square to try it.</p>
+  </div>
+  <article class="card">
+    <div class="heat-wrap"><table class="heat" id="heat"></table></div>
+    <div class="heat-legend"><span>Under target</span><i></i><span>Over target</span></div>
+  </article>
+
+  <div class="section-head">
+    <h2>15-year vs. 30-year</h2>
+    <p id="compareIntro">Same home, same down payment. Rates adjust in 0.1% steps.</p>
+  </div>
+  <div class="grid">
+    <article class="card s4">
+      <div class="field">
+        <div class="field-top"><label>15-year fixed rate</label><output id="r15Out"></output></div>
+        <input type="range" min="2" max="12" step="0.1" data-bind="rate15" aria-label="15-year rate">
+      </div>
+      <div class="field">
+        <div class="field-top"><label>30-year fixed rate</label><output id="r30Out"></output></div>
+        <input type="range" min="2" max="12" step="0.1" data-bind="rate30" aria-label="30-year rate">
+      </div>
+      <div class="field">
+        <div class="field-top"><label>Extra principal each month</label><output id="extraOut"></output></div>
+        <input type="range" min="0" max="2000" step="25" data-bind="extra" aria-label="Extra principal">
+        <p class="hint" id="extraText"></p>
+      </div>
+      <div class="field">
+        <div class="field-label">Numbers</div>
+        <div class="seg" role="group" aria-label="Rounding" style="margin-top:6px">
+          <button type="button" data-seg="rounded" data-value="false">Exact</button>
+          <button type="button" data-seg="rounded" data-value="true">Rounded</button>
+        </div>
+      </div>
+    </article>
+    <article class="card s8">
+      <div class="compare-wrap">
+        <table class="compare" id="compareTable"></table>
+      </div>
+    </article>
+    <article class="card">
+      <div class="row">
+        <div><h3>Balance and interest over time</h3><p class="sub" style="margin:0">Solid lines are the loan balance. Dashed lines are total interest paid so far.</p></div>
+        <div class="legend" style="margin:0">
+          <span><i style="--c:var(--c-principal)"></i>15-year</span>
+          <span><i style="--c:#30b0c7"></i>30-year</span>
+        </div>
+      </div>
+      <div class="chart-wrap" id="chartWrap">
+        <svg id="chart" viewBox="0 0 760 300" role="img" aria-label="Loan balance and cumulative interest by year"></svg>
+        <div class="chart-tip" id="chartTip" hidden></div>
+      </div>
+    </article>
+  </div>
+
+  <div class="section-head">
+    <h2>Beyond the mortgage</h2>
+    <p>Not part of the 25%, but part of owning a house.</p>
+  </div>
+  <div class="grid">
+    <article class="card s6">
+      <div class="field">
+        <div class="field-top"><label>Maintenance and repairs</label><output id="maintOut"></output></div>
+        <input type="range" min="0" max="4" step="0.1" data-bind="maintPct" aria-label="Maintenance percent of price per year">
+        <p class="hint">A common rule is 1% of the home's price each year. Older homes need more.</p>
+      </div>
+      <div class="field">
+        <div class="field-top"><label for="utilIn">Utilities</label><output id="utilOut"></output></div>
+        <div class="money compact"><span>$</span><input id="utilIn" type="number" step="10" min="0" data-bind="utilities"><span>/ mo</span></div>
+        <p class="hint">Power, water, sewer, gas, trash, and internet. $375 a month is a typical Birmingham-area estimate for a 2,000 sq ft house.</p>
+      </div>
+    </article>
+    <article class="card s6" style="display:flex;flex-direction:column;justify-content:center">
+      <p class="eyebrow">True monthly cost of owning</p>
+      <div class="big" id="trueBig">—</div>
+      <p class="muted" id="trueSub" style="margin:6px 0 0"></p>
+    </article>
+  </div>
+
+  <footer class="sources">
+    <h3>Sources and assumptions</h3>
+    <ul>
+      <li>25% rule, 20% down, and closing cost guidance: <a href="https://www.ramseysolutions.com/real-estate/what-are-closing-costs" target="_blank" rel="noopener">Ramsey Solutions, "Closing Costs" (updated Oct 2026)</a> and Ramsey's mortgage comparison ($300,000 home, 20% down, 6.5% 15-year, 7% 30-year).</li>
+      <li>Millage: <a href="https://www.hooveralabama.gov/981/Taxes-and-Incentives" target="_blank" rel="noopener">City of Hoover</a> (72.6 mills Jefferson, 66.5 Shelby), <a href="https://eringcapture.jccal.org/caportal/Custom/CA_MilageRate.aspx" target="_blank" rel="noopener">Jefferson County 2026 rates</a>, <a href="https://ptc.shelbyal.com/taxlien" target="_blank" rel="noopener">Shelby County rates</a>, and the Alabama Department of Revenue 2025 millage table. Jefferson County adds a $5 storm water fee on homes.</li>
+      <li>Assessment and homestead: <a href="https://www.revenue.alabama.gov/property-tax/property-tax-assessment/" target="_blank" rel="noopener">Alabama DOR</a>. Class III homes are assessed at 10%. H-1 exempts $4,000 of assessed value from state tax and $2,000 from county tax; school levies still apply.</li>
+      <li>Insurance: Insurance.com 2026 city rates (Hoover $2,414/yr) and U.S. Census 2025 ACS medians via MonitorBankRates.</li>
+      <li>Recording taxes: <a href="https://www.revenue.alabama.gov/tax-types/recordation-tax/" target="_blank" rel="noopener">Alabama recordation tax</a>. Title: Stewart Title Alabama schedule of charges (2026), lender policy $2.50 per $1,000.</li>
+      <li>Inspections: Trammell Inspection Services, Ally Property Inspections, and Sterling Home Inspection published Birmingham prices (2026).</li>
+      <li>Estimates only. Your lender's Loan Estimate and Closing Disclosure are the real numbers.</li>
+    </ul>
+  </footer>
+</main>
+<div id="toast" role="status" hidden></div>
+
+<script>
+"use strict";
+
+const STORAGE_KEY = "bre.finances.v1";
+const STATE_MILLS = 6.5;
+
+const AREAS = [
+  { id: "hoover-jeff", label: "Hoover · Jefferson", place: "Hoover", mills: 72.6, countyMills: 13.5, storm: true },
+  { id: "hoover-shelby", label: "Hoover · Shelby", place: "Hoover", mills: 66.5, countyMills: 7.5, storm: false },
+  { id: "birmingham", label: "Birmingham", place: "Birmingham", mills: 72.5, countyMills: 13.5, storm: true },
+  { id: "homewood", label: "Homewood", place: "Homewood", mills: 75.0, countyMills: 13.5, storm: true },
+  { id: "vestavia-jeff", label: "Vestavia Hills · Jefferson", place: "Vestavia Hills", mills: 92.6, countyMills: 13.5, storm: true },
+  { id: "vestavia-shelby", label: "Vestavia Hills · Shelby", place: "Vestavia Hills", mills: 79.3, countyMills: 7.5, storm: false },
+  { id: "mountain-brook", label: "Mountain Brook", place: "Mountain Brook", mills: 109.0, countyMills: 13.5, storm: true },
+  { id: "trussville", label: "Trussville", place: "Trussville", mills: 62.1, countyMills: 13.5, storm: true },
+  { id: "pelham", label: "Pelham", place: "Pelham", mills: 58.0, countyMills: 7.5, storm: false },
+  { id: "helena", label: "Helena · Shelby", place: "Helena", mills: 49.0, countyMills: 7.5, storm: false },
+  { id: "alabaster", label: "Alabaster", place: "Alabaster", mills: 54.0, countyMills: 7.5, storm: false },
+  { id: "custom", label: "Custom", place: "", mills: null, countyMills: 13.5, storm: false }
+];
+
+const INSPECTIONS = [
+  { id: "general", label: "General home inspection", note: "Roof, structure, electrical, plumbing, HVAC", amount: 400, on: true },
+  { id: "wdo", label: "Termite / wood-destroying organisms", note: "Often required by lenders in the Southeast", amount: 150, on: true },
+  { id: "radon", label: "Radon test", note: "Jefferson and Shelby homes run moderate to high", amount: 150, on: true },
+  { id: "sewer", label: "Sewer line camera scope", note: "Worth it for homes over 30 years old", amount: 250, on: false },
+  { id: "mold", label: "Mold / air quality test", note: "Humid summers, finished basements", amount: 250, on: false },
+  { id: "specialty", label: "Structural, roof, pool, or septic", note: "Only when the general inspection flags it", amount: 350, on: false }
+];
+
+const SIZES = [
+  { label: "Under 2,000 sq ft", amount: 375 },
+  { label: "2,000–2,800", amount: 425 },
+  { label: "2,800–3,200", amount: 475 },
+  { label: "3,200+", amount: 525 }
+];
+
+const DEFAULTS = {
+  takeHome: 8500,
+  price: 300000,
+  term: 15,
+  rate15: 6.5,
+  rate30: 7.0,
+  area: "hoover-jeff",
+  millage: 72.6,
+  homestead: true,
+  insMode: "scale",
+  insRate: 0.805,
+  insAnnual: 2414,
+  hoa: 0,
+  pmiRate: 0.65,
+  downPct: 20,
+  closingMode: "quick",
+  closingUnit: "pct",
+  closingPct: 2,
+  closingUsd: 4800,
+  origPct: 0.5,
+  points: 0,
+  appFee: 650,
+  appraisal: 450,
+  creditFee: 55,
+  taxService: 140,
+  closingDay: 16,
+  insPrepaidMonths: 12,
+  escrowTaxMonths: 3,
+  escrowInsMonths: 2,
+  recordingFees: 55,
+  settlementFee: 750,
+  hoaTransfer: 0,
+  sellerCredit: 0,
+  agentPct: 3.0,
+  sellerAgentShare: 0,
+  insp: Object.fromEntries(INSPECTIONS.map((i) => [i.id, { amount: i.amount, on: i.on }])),
+  movingUnit: "usd",
+  moving: 1000,
+  movingPct: 0.35,
+  expenses: 4500,
+  reserveMonths: 6,
+  saved: 40000,
+  monthlySave: 2000,
+  extra: 0,
+  rounded: false,
+  maintPct: 1.0,
+  utilities: 375
+};
+
+const usd0 = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+const usd2 = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const money = (v) => usd0.format(Math.round(v));
+const money2 = (v) => usd2.format(v);
+const pct = (v, d = 1) => `${v.toFixed(d)}%`;
+const compact = (v) => v >= 1e6 ? `$${(v / 1e6).toFixed(v % 1e6 === 0 ? 0 : 2)}M` : `$${Math.round(v / 1000)}K`;
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+let state = loadState();
+
+function cloneDefaults() { return JSON.parse(JSON.stringify(DEFAULTS)); }
+
+function merge(base, saved) {
+  const out = cloneDefaults();
+  Object.assign(out, base);
+  for (const key of Object.keys(DEFAULTS)) {
+    if (!(key in saved)) continue;
+    if (key === "insp") {
+      for (const id of Object.keys(out.insp)) {
+        if (saved.insp && saved.insp[id]) out.insp[id] = { ...out.insp[id], ...saved.insp[id] };
+      }
+    } else if (typeof saved[key] === typeof DEFAULTS[key]) {
+      out[key] = saved[key];
+    }
+  }
+  return out;
+}
+
+function loadState() {
+  let s = cloneDefaults();
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) s = merge(s, JSON.parse(raw));
+  } catch (e) { /* storage unavailable */ }
+  const hash = location.hash.match(/s=([^&]+)/);
+  if (hash) {
+    try { s = merge(cloneDefaults(), JSON.parse(decodeURIComponent(escape(atob(hash[1]))))); } catch (e) { /* bad link */ }
+  }
+  const place = new URLSearchParams(location.search).get("place");
+  if (place) {
+    const area = AREAS.find((a) => a.place && a.place.toLowerCase() === place.toLowerCase());
+    if (area) {
+      s.area = area.id;
+      s.millage = area.mills;
+      queueMicrotask(() => toast(`Property taxes set to ${area.label} (${area.mills} mills).`));
+    } else {
+      queueMicrotask(() => toast(`No millage preset for ${place} yet. Enter its millage under Property taxes.`));
+    }
+  }
+  return s;
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable */ }
+}
+
+/* ---------- Math ---------- */
+
+function monthlyPI(loan, ratePct, years) {
+  if (loan <= 0) return 0;
+  const n = years * 12;
+  const r = ratePct / 100 / 12;
+  if (r === 0) return loan / n;
+  const f = Math.pow(1 + r, n);
+  return loan * r * f / (f - 1);
+}
+
+function amortize(loan, ratePct, years, extra = 0) {
+  const r = ratePct / 100 / 12;
+  const pmt = monthlyPI(loan, ratePct, years);
+  let bal = loan;
+  let cumInt = 0;
+  let month = 0;
+  let firstYearInt = 0;
+  let firstYearPrin = 0;
+  const yearly = [{ year: 0, balance: loan, interest: 0 }];
+  while (bal > 0.005 && month < years * 12) {
+    const interest = bal * r;
+    let principal = Math.min(bal, pmt - interest + extra);
+    bal -= principal;
+    cumInt += interest;
+    month++;
+    if (month <= 12) { firstYearInt += interest; firstYearPrin += principal; }
+    if (month % 12 === 0 || bal <= 0.005) yearly.push({ year: month / 12, balance: Math.max(0, bal), interest: cumInt });
+  }
+  return { payment: pmt, months: month, totalInterest: cumInt, yearly, firstYearInt, firstYearPrin };
+}
+
+function area() { return AREAS.find((a) => a.id === state.area) || AREAS[0]; }
+
+function propertyTax(price, s = state) {
+  const a = AREAS.find((x) => x.id === s.area) || AREAS[0];
+  const assessPct = s.homestead ? 0.10 : 0.20;
+  const assessed = price * assessPct;
+  const gross = assessed * s.millage / 1000;
+  const exempt = s.homestead ? Math.min(gross, (4000 * STATE_MILLS + 2000 * a.countyMills) / 1000) : 0;
+  const storm = a.storm ? (s.homestead ? 5 : 15) : 0;
+  return { assessed, gross, exempt, storm, annual: Math.max(0, gross - exempt) + storm };
+}
+
+function insuranceAnnual(price, s = state) {
+  return s.insMode === "fixed" ? s.insAnnual : price * s.insRate / 100;
+}
+
+function rateFor(term, s = state) { return term === 15 ? s.rate15 : s.rate30; }
+
+function monthlyBreakdown(price, s = state, term = s.term, rate = rateFor(term, s)) {
+  const down = price * s.downPct / 100;
+  const loan = Math.max(0, price - down);
+  const pmt = monthlyPI(loan, rate, term);
+  const am = amortize(loan, rate, term);
+  const interest = am.firstYearInt / 12;
+  const principal = Math.max(0, pmt - interest);
+  const tax = propertyTax(price, s).annual / 12;
+  const ins = insuranceAnnual(price, s) / 12;
+  const hoa = s.hoa;
+  const pmi = s.downPct < 20 ? loan * s.pmiRate / 100 / 12 : 0;
+  return { down, loan, pi: pmt, principal, interest, tax, ins, hoa, pmi, total: pmt + tax + ins + hoa + pmi };
+}
+
+function target() { return state.takeHome * 0.25; }
+
+function maxAffordable(s = state, term = s.term, rate = rateFor(term, s)) {
+  const budget = s.takeHome * 0.25;
+  const totalAt = (p) => monthlyBreakdown(p, s, term, rate).total;
+  if (totalAt(0) > budget) return 0;
+  let lo = 0, hi = 5000000;
+  for (let i = 0; i < 48; i++) {
+    const mid = (lo + hi) / 2;
+    if (totalAt(mid) <= budget) lo = mid; else hi = mid;
+  }
+  return Math.floor(lo / 1000) * 1000;
+}
+
+function closingItems(price, loan, s = state) {
+  const rate = rateFor(s.term, s);
+  const days = clamp(31 - s.closingDay, 1, 30);
+  const insYear = insuranceAnnual(price, s);
+  const taxYear = propertyTax(price, s).annual;
+  const lenderPolicy = loan > 0 ? Math.max(250, Math.ceil(loan / 1000) * 2.5) : 0;
+  const mortgageTax = loan > 0 ? Math.ceil(loan / 100) * 0.15 : 0;
+  const deedTax = Math.ceil(Math.max(0, price - loan) / 500) * 0.5;
+  return [
+    { group: "Lender fees" },
+    { key: "orig", label: "Origination fee", note: "Usually 0.5–1% of the loan", param: { key: "origPct", unit: "%", step: 0.05 }, amount: loan * s.origPct / 100 },
+    { key: "app", label: "Application and underwriting", note: "Credit review and loan approval", param: { key: "appFee", unit: "$", step: 25 }, amount: s.appFee },
+    { key: "appraisal", label: "Appraisal", note: "Usually $300–500", param: { key: "appraisal", unit: "$", step: 25 }, amount: s.appraisal },
+    { key: "credit", label: "Credit report", param: { key: "creditFee", unit: "$", step: 5 }, amount: s.creditFee },
+    { key: "taxsvc", label: "Tax service and courier", param: { key: "taxService", unit: "$", step: 10 }, amount: s.taxService },
+    { key: "points", label: "Discount points", note: "1 point is 1% of the loan", param: { key: "points", unit: "pts", step: 0.125 }, amount: loan * s.points / 100 },
+    { key: "prepaidInt", label: "Prepaid interest", note: `Closing on day ${s.closingDay} is about ${days} days at ${pct(rate, 2)}. Closing late in the month costs less.`, param: { key: "closingDay", unit: "day", step: 1, min: 1, max: 30 }, amount: loan * rate / 100 / 365 * days },
+    { group: "Taxes and insurance" },
+    { key: "insPre", label: "First year of homeowners insurance", note: "Lenders want 6–12 months paid at or before closing", param: { key: "insPrepaidMonths", unit: "mo", step: 1, min: 0, max: 12 }, amount: insYear / 12 * s.insPrepaidMonths },
+    { key: "escTax", label: "Escrow deposit: property taxes", note: "Alabama bills taxes in arrears, due October 1", param: { key: "escrowTaxMonths", unit: "mo", step: 1, min: 0, max: 12 }, amount: taxYear / 12 * s.escrowTaxMonths },
+    { key: "escIns", label: "Escrow deposit: insurance cushion", param: { key: "escrowInsMonths", unit: "mo", step: 1, min: 0, max: 6 }, amount: insYear / 12 * s.escrowInsMonths },
+    { group: "Title, transfer, and recording" },
+    { key: "mtgTax", label: "Alabama mortgage recording tax", note: "$0.15 per $100 of the loan", amount: mortgageTax },
+    { key: "deedTax", label: "Alabama deed tax", note: "$0.50 per $500 above the mortgage. Often seller-paid.", amount: deedTax },
+    { key: "recording", label: "Probate recording fees", note: "Jefferson or Shelby County, deed and mortgage", param: { key: "recordingFees", unit: "$", step: 5 }, amount: s.recordingFees },
+    { key: "lenderTitle", label: "Lender's title policy", note: "$2.50 per $1,000 of the loan", amount: lenderPolicy },
+    { key: "settle", label: "Title search, settlement, and closing attorney", param: { key: "settlementFee", unit: "$", step: 25 }, amount: s.settlementFee },
+    { key: "hoaT", label: "HOA transfer or setup fee", param: { key: "hoaTransfer", unit: "$", step: 25 }, amount: s.hoaTransfer }
+  ];
+}
+
+function compute() {
+  const price = state.price;
+  const m = monthlyBreakdown(price);
+  const t = target();
+  const items = closingItems(price, m.loan);
+  const itemizedTotal = items.reduce((sum, i) => sum + (i.amount || 0), 0);
+  const quickTotal = state.closingUnit === "pct" ? m.loan * state.closingPct / 100 : state.closingUsd;
+  const closingGross = state.closingMode === "itemized" ? itemizedTotal : quickTotal;
+  const closing = Math.max(0, closingGross - state.sellerCredit);
+  const agentFull = price * state.agentPct / 100;
+  const agent = agentFull * (1 - state.sellerAgentShare / 100);
+  const inspections = INSPECTIONS.reduce((sum, i) => sum + (state.insp[i.id].on ? state.insp[i.id].amount : 0), 0);
+  const moving = state.movingUnit === "pct" ? price * state.movingPct / 100 : state.moving;
+  const subA = m.down + closing + agent + inspections + moving;
+  const reserve = state.expenses * state.reserveMonths;
+  const grand = subA + reserve;
+  const maxHome = maxAffordable();
+  return { price, m, t, items, itemizedTotal, quickTotal, closingGross, closing, agentFull, agent, inspections, moving, subA, reserve, grand, maxHome };
+}
+
+/* ---------- Rendering ---------- */
+
+const $ = (id) => document.getElementById(id);
+
+function setTone(el, tone) {
+  el.classList.remove("good", "warn", "bad");
+  if (tone) el.classList.add(tone);
+}
+
+function toneFor(total, t) {
+  if (total <= t) return "good";
+  if (total <= t * 1.1) return "warn";
+  return "bad";
+}
+
+function syncInputs() {
+  const active = document.activeElement;
+  document.querySelectorAll("[data-bind]").forEach((el) => {
+    const key = el.dataset.bind;
+    let v = key === "downUsd" ? Math.round(state.price * state.downPct / 100) : state[key];
+    if (el.type === "checkbox") { el.checked = !!v; return; }
+    if (el !== active) el.value = el.type === "range" ? v : (typeof v === "number" ? +v.toFixed(4) : v);
+    if (el.type === "range") {
+      const min = +el.min, max = +el.max;
+      el.style.setProperty("--fill", `${clamp((+el.value - min) / (max - min), 0, 1) * 100}%`);
+    }
+  });
+  document.querySelectorAll("[data-seg]").forEach((btn) => {
+    btn.setAttribute("aria-pressed", String(String(state[btn.dataset.seg]) === btn.dataset.value));
+  });
+}
+
+function render() {
+  const c = compute();
+  const { m, t } = c;
+  const tone = toneFor(m.total, t);
+  const share = m.total / state.takeHome * 100;
+  const delta = (m.total - t) / t * 100;
+  const deltaWord = delta > 0 ? "above" : "below";
+
+  syncInputs();
+
+  // Ribbon
+  $("rbPayment").querySelector("strong").textContent = money(m.total);
+  $("rbShare").querySelector("strong").textContent = pct(share);
+  $("rbDelta").querySelector("strong").textContent = `${delta > 0 ? "+" : "−"}${pct(Math.abs(delta))}`;
+  $("rbMax").querySelector("strong").textContent = money(c.maxHome);
+  $("rbCash").querySelector("strong").textContent = money(c.grand);
+  setTone($("rbShare"), tone);
+  setTone($("rbDelta"), tone);
+
+  // Income card
+  $("targetOut").textContent = `25% = ${money(t)}/mo`;
+  const rate = rateFor(state.term);
+  $("termRateOut").innerHTML = `<b>${pct(rate)}</b> <span class="muted">· ${state.term}-year fixed</span>`;
+  $("rate15Field").hidden = state.term !== 15;
+  $("rate30Field").hidden = state.term !== 30;
+
+  // Affordability
+  const parts = [
+    { key: "principal", label: "Principal", v: m.principal, c: "var(--c-principal)" },
+    { key: "interest", label: "Interest", v: m.interest, c: "var(--c-interest)" },
+    { key: "tax", label: "Property tax", v: m.tax, c: "var(--c-tax)" },
+    { key: "ins", label: "Insurance", v: m.ins, c: "var(--c-ins)" },
+    { key: "hoa", label: "HOA", v: m.hoa, c: "var(--c-hoa)" },
+    { key: "pmi", label: "PMI", v: m.pmi, c: "var(--c-pmi)" }
+  ];
+  drawRing(parts, m.total);
+  $("ringTotal").textContent = money(m.total);
+  $("ringShare").textContent = `${pct(share)} of take-home`;
+  const badge = $("statusBadge");
+  badge.className = `status ${tone}`;
+  badge.textContent = tone === "good" ? "Within the 25% rule" : tone === "warn" ? "Slightly over 25%" : "Over the 25% rule";
+  $("deltaBig").textContent = `${pct(Math.abs(delta))} ${deltaWord}`;
+  $("deltaBig").className = `big tone-${tone}`;
+  $("deltaText").textContent = `${money(m.total)} a month is ${pct(Math.abs(delta))} ${deltaWord} your ${money(t)} target, ${pct(share)} of take-home.`;
+  $("kTarget").textContent = `${money(t)}/mo`;
+  $("kMax").textContent = money(c.maxHome);
+  const room = t - m.total;
+  $("kRoom").textContent = `${room < 0 ? "−" : ""}${money(Math.abs(room))}`;
+  $("kRoom").className = room >= 0 ? "tone-good" : "tone-bad";
+  $("maxNote").textContent = `${state.term}-year at ${pct(rate)}, ${pct(state.downPct, 0)} down, ${area().label} taxes.`;
+
+  const scale = Math.max(m.total, t) * 1.15;
+  $("gaugeBar").innerHTML = parts.filter((p) => p.v > 0).map((p) => `<i style="width:${p.v / scale * 100}%;background:${p.c}" title="${p.label} ${money(p.v)}"></i>`).join("");
+  $("gaugeMark").style.left = `${t / scale * 100}%`;
+  $("gaugeMark").dataset.label = `25% · ${money(t)}`;
+  $("payLegend").innerHTML = parts.map((p) => `<span><i style="--c:${p.c}"></i>${p.label} <b>${money(p.v)}</b></span>`).join("");
+
+  // Taxes
+  const tax = propertyTax(c.price);
+  const a = area();
+  $("areaPills").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.area === state.area)));
+  $("effRate").textContent = `${pct(tax.annual / c.price * 100, 2)} effective`;
+  $("taxLines").innerHTML = [
+    ["Assessed value", `${money(c.price)} × ${state.homestead ? "10%" : "20%"} = ${money(tax.assessed)}`],
+    ["Tax before exemption", `${money(tax.assessed)} × ${state.millage} mills = ${money(tax.gross)}`],
+    state.homestead ? ["Homestead exemption (H-1)", `− ${money(tax.exempt)}`] : null,
+    tax.storm ? ["Jefferson County storm water fee", money(tax.storm)] : null,
+    ["Property tax", `<b>${money(tax.annual)}/yr · ${money(tax.annual / 12)}/mo</b>`]
+  ].filter(Boolean).map(([k, v]) => `<div class="stat-line"><span>${k}</span><span>${v}</span></div>`).join("");
+
+  // Insurance / HOA / PMI
+  const insYear = insuranceAnnual(c.price);
+  $("insOut").textContent = `${money(insYear)}/yr · ${money(insYear / 12)}/mo`;
+  $("insScale").hidden = state.insMode !== "scale";
+  $("insFixed").hidden = state.insMode !== "fixed";
+  $("hoaOut").textContent = `${money(state.hoa)}/mo`;
+  $("pmiRateOut").textContent = `${pct(state.pmiRate, 2)} of loan / yr`;
+  if (state.downPct >= 20) {
+    $("pmiOut").textContent = "$0/mo";
+    $("pmiOut").className = "tone-good";
+    $("pmiBody").innerHTML = `<p class="hint" style="margin:0">Not required. You're putting ${pct(state.downPct, 0)} down.</p>`;
+    $("pmiRateField").hidden = true;
+  } else {
+    const need = c.price * 0.2 - m.down;
+    $("pmiOut").textContent = `${money(m.pmi)}/mo`;
+    $("pmiOut").className = "tone-bad";
+    $("pmiBody").innerHTML = `<div class="note warm" style="margin:0">Under 20% down, conventional loans add PMI. Put <strong>${money(need)}</strong> more down (${money(c.price * 0.2)} total) to drop it.</div>`;
+    $("pmiRateField").hidden = false;
+  }
+
+  // Down payment
+  $("downBig").textContent = money(m.down);
+  $("downSub").textContent = `${pct(state.downPct, state.downPct % 1 ? 1 : 0)} of ${money(c.price)} · loan ${money(m.loan)}`;
+  $("downPctOut").textContent = pct(state.downPct, state.downPct % 1 ? 1 : 0);
+
+  // Closing
+  $("closingBig").textContent = money(c.closing);
+  $("closingQuick").hidden = state.closingMode !== "quick";
+  $("closingPctField").hidden = state.closingUnit !== "pct";
+  $("closingUsdField").hidden = state.closingUnit !== "usd";
+  $("closingPctOut").textContent = `${pct(state.closingPct)} · ${money(m.loan * state.closingPct / 100)}`;
+  const itemPct = m.loan > 0 ? c.itemizedTotal / m.loan * 100 : 0;
+  const quickPct = m.loan > 0 ? c.quickTotal / m.loan * 100 : 0;
+  $("closingCompare").textContent = state.closingMode === "quick"
+    ? `Itemized estimate: ${money(c.itemizedTotal)} (${pct(itemPct)})`
+    : `Quick estimate: ${money(c.quickTotal)} (${pct(quickPct)})`;
+  if (state.closingMode === "itemized") $("itemizedDetails").open = true;
+  renderItems(c);
+
+  // Agent
+  $("agentBig").textContent = money(c.agent);
+  $("agentPctOut").textContent = `${pct(state.agentPct)} · ${money(c.agentFull)}`;
+  $("sellerAgentOut").textContent = `${state.sellerAgentShare}%${state.sellerAgentShare ? ` · ${money(c.agentFull - c.agent)}` : ""}`;
+  $("agentSub").textContent = state.sellerAgentShare
+    ? `You pay ${100 - state.sellerAgentShare}% of the ${money(c.agentFull)} fee`
+    : `${pct(state.agentPct)} of ${money(c.price)}, paid by you`;
+
+  // Inspections
+  $("inspBig").textContent = money(c.inspections);
+  renderInspections();
+
+  // Moving
+  $("movingBig").textContent = money(c.moving);
+  $("movingUsdField").hidden = state.movingUnit !== "usd";
+  $("movingPctField").hidden = state.movingUnit !== "pct";
+  $("movingPctOut").textContent = `${pct(state.movingPct, 2)} · ${money(c.price * state.movingPct / 100)}`;
+
+  // Emergency
+  $("monthsOut").textContent = `${state.reserveMonths} months`;
+  $("expShare").textContent = `${pct(state.expenses / state.takeHome * 100, 0)} of take-home`;
+  $("reserveBig").textContent = money(c.reserve);
+  $("reserveSub").textContent = `${state.reserveMonths} months × ${money(state.expenses)}. Three months is the floor; six is safer with a new house.`;
+
+  renderTotals(c);
+  renderHeatmap(c);
+  renderCompare(c);
+
+  // Beyond
+  const maint = c.price * state.maintPct / 100 / 12;
+  $("maintOut").textContent = `${pct(state.maintPct)} · ${money(maint)}/mo`;
+  $("utilOut").textContent = `${money(state.utilities)}/mo`;
+  const trueCost = m.total + maint + state.utilities;
+  $("trueBig").textContent = `${money(trueCost)}/mo`;
+  $("trueSub").textContent = `${money(m.total)} payment + ${money(maint)} upkeep + ${money(state.utilities)} utilities = ${pct(trueCost / state.takeHome * 100)} of take-home.`;
+
+  saveState();
+}
+
+function drawRing(parts, total) {
+  const r = 50, C = 2 * Math.PI * r;
+  let offset = 0;
+  const gap = 1.2;
+  const segs = parts.filter((p) => p.v > 0).map((p) => {
+    const len = total > 0 ? p.v / total * C : 0;
+    const seg = `<circle cx="60" cy="60" r="${r}" fill="none" stroke="${p.c}" stroke-width="14" stroke-dasharray="${Math.max(0, len - gap)} ${C}" stroke-dashoffset="${-offset}"><title>${p.label} ${money(p.v)}</title></circle>`;
+    offset += len;
+    return seg;
+  });
+  $("ring").innerHTML = `<circle cx="60" cy="60" r="${r}" fill="none" stroke="#ececf0" stroke-width="14"/>${segs.join("")}`;
+}
+
+function paramInput(p) {
+  const v = state[p.key];
+  const attrs = `type="number" data-bind="${p.key}" step="${p.step}"${p.min != null ? ` min="${p.min}"` : ` min="0"`}${p.max != null ? ` max="${p.max}"` : ""} value="${v}" aria-label="${p.key}"`;
+  if (p.unit === "$") return `<div class="money"><span>$</span><input ${attrs}></div>`;
+  return `<div class="money"><input ${attrs}><span>${p.unit}</span></div>`;
+}
+
+let itemsBuilt = false;
+function renderItems(c) {
+  const table = $("itemTable");
+  if (!itemsBuilt) {
+    table.innerHTML = c.items.map((i) => i.group
+      ? `<tr><th colspan="3">${i.group}</th></tr>`
+      : `<tr><td>${i.label}${i.note ? `<span class="item-note" data-note="${i.key}">${i.note}</span>` : ""}</td><td class="param">${i.param ? paramInput(i.param) : ""}</td><td data-amt="${i.key}"></td></tr>`
+    ).join("") + `<tr class="credit"><td>Seller credit toward closing<span class="item-note">Negotiated seller concessions, if any. Applies to either estimate.</span></td><td class="param">${paramInput({ key: "sellerCredit", unit: "$", step: 100 })}</td><td data-amt="credit"></td></tr>
+      <tr class="total"><td colspan="2">Itemized closing costs</td><td data-amt="total"></td></tr>`;
+    itemsBuilt = true;
+  }
+  for (const i of c.items) {
+    if (i.group) continue;
+    table.querySelector(`[data-amt="${i.key}"]`).textContent = money(i.amount);
+    const note = table.querySelector(`[data-note="${i.key}"]`);
+    if (note && note.textContent !== i.note) note.textContent = i.note;
+  }
+  table.querySelector('[data-amt="credit"]').textContent = state.sellerCredit ? `− ${money(state.sellerCredit)}` : money(0);
+  table.querySelector('[data-amt="total"]').textContent = `${money(Math.max(0, c.itemizedTotal - state.sellerCredit))} · ${pct(c.m.loan ? c.itemizedTotal / c.m.loan * 100 : 0)}`;
+}
+
+let inspBuilt = false;
+function renderInspections() {
+  const table = $("inspTable");
+  if (!inspBuilt) {
+    table.innerHTML = INSPECTIONS.map((i) => `<tr data-row="${i.id}">
+      <td><label class="check"><input type="checkbox" data-insp-on="${i.id}"><span>${i.label}<span class="item-note">${i.note}</span></span></label></td>
+      <td class="param"><div class="money"><span>$</span><input type="number" min="0" step="25" data-insp-amt="${i.id}" aria-label="${i.label} cost"></div></td>
+    </tr>`).join("");
+    $("sizePills").innerHTML = SIZES.map((s) => `<button type="button" class="pill-btn" data-size="${s.amount}">${s.label}</button>`).join("");
+    inspBuilt = true;
+  }
+  const active = document.activeElement;
+  for (const i of INSPECTIONS) {
+    const st = state.insp[i.id];
+    table.querySelector(`[data-insp-on="${i.id}"]`).checked = st.on;
+    const amt = table.querySelector(`[data-insp-amt="${i.id}"]`);
+    if (amt !== active) amt.value = st.amount;
+    table.querySelector(`[data-row="${i.id}"]`).classList.toggle("off", !st.on);
+  }
+  $("sizePills").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.size === state.insp.general.amount)));
+}
+
+function renderTotals(c) {
+  const segs = [
+    { label: "Down payment", v: c.m.down, c: "var(--c-down)" },
+    { label: "Closing costs", v: c.closing, c: "var(--c-closing)" },
+    { label: "Agent", v: c.agent, c: "var(--c-agent)" },
+    { label: "Inspections", v: c.inspections, c: "var(--c-insp)" },
+    { label: "Moving", v: c.moving, c: "var(--c-moving)" },
+    { label: "Emergency fund", v: c.reserve, c: "var(--c-reserve)" }
+  ];
+  const total = c.grand || 1;
+  $("allocBar").innerHTML = segs.filter((s) => s.v > 0).map((s) => `<i style="width:${s.v / total * 100}%;background:${s.c}" title="${s.label}: ${money(s.v)} (${pct(s.v / total * 100)})"></i>`).join("");
+  $("allocLegend").innerHTML = segs.map((s) => `<span><i style="--c:${s.c}"></i>${s.label} <b>${money(s.v)}</b> <span class="muted">${pct(s.v / total * 100)}</span></span>`).join("");
+  $("grandBig").textContent = money(c.grand);
+  $("grandPct").textContent = `${pct(c.grand / c.price * 100)} of price`;
+  $("subA").textContent = money(c.subA);
+  $("subALines").innerHTML = segs.slice(0, 5).map((s) => `<div class="stat-line"><span>${s.label}</span><b>${money(s.v)}</b></div>`).join("")
+    + (state.sellerCredit ? `<div class="stat-line"><span>Seller credit (in closing)</span><b class="tone-good">− ${money(state.sellerCredit)}</b></div>` : "");
+  $("subB").textContent = money(c.reserve);
+  $("subBLines").innerHTML = `<div class="stat-line"><span>Monthly expenses</span><b>${money(state.expenses)}</b></div><div class="stat-line"><span>Months</span><b>${state.reserveMonths}</b></div><div class="stat-line"><span>Stays in the bank</span><b>Yes</b></div>`;
+  const funded = clamp(state.saved / c.grand * 100, 0, 100);
+  $("fundBar").style.width = `${funded}%`;
+  const short = c.grand - state.saved;
+  let text;
+  if (short <= 0) text = `Fully funded with ${money(-short)} to spare.`;
+  else if (state.monthlySave > 0) {
+    const months = Math.ceil(short / state.monthlySave);
+    const when = new Date();
+    when.setMonth(when.getMonth() + months);
+    text = `${pct(funded, 0)} funded. ${money(short)} to go: about ${months} month${months === 1 ? "" : "s"} (${when.toLocaleDateString("en-US", { month: "long", year: "numeric" })}).`;
+  } else text = `${pct(funded, 0)} funded. ${money(short)} to go.`;
+  $("fundText").textContent = text;
+}
+
+function heatColor(d) {
+  const x = clamp(d, -0.25, 0.35);
+  const hue = x <= 0 ? 52 + (-x / 0.25) * 88 : 52 - (x / 0.35) * 52;
+  const light = 86 - Math.min(Math.abs(x), 0.3) * 20;
+  return `hsl(${hue.toFixed(0)} 72% ${light.toFixed(0)}%)`;
+}
+
+function renderHeatmap(c) {
+  const term = state.term;
+  const cur = rateFor(term);
+  const center = Math.round(c.price / 10000) * 10000;
+  const prices = [];
+  for (let k = -6; k <= 6; k += 2) prices.push(Math.max(50000, center + k * 10000));
+  const baseRate = Math.round(cur * 2) / 2;
+  const rates = [];
+  for (let k = -3; k <= 3; k++) rates.push(+(baseRate + k * 0.5).toFixed(1));
+  const t = target();
+  const curPrice = prices.reduce((best, p) => Math.abs(p - c.price) < Math.abs(best - c.price) ? p : best, prices[0]);
+  const curRate = rates.reduce((best, r) => Math.abs(r - cur) < Math.abs(best - cur) ? r : best, rates[0]);
+  let html = `<thead><tr><th class="rowh">${term}-yr rate →</th>${rates.map((r) => `<th>${r.toFixed(1)}%</th>`).join("")}</tr></thead><tbody>`;
+  for (const p of [...prices].reverse()) {
+    html += `<tr><th class="rowh">${compact(p)}</th>`;
+    for (const r of rates) {
+      const total = monthlyBreakdown(p, state, term, r).total;
+      const d = (total - t) / t;
+      const isCur = p === curPrice && r === curRate;
+      html += `<td><button type="button" class="${isCur ? "current" : ""}" style="--bg-c:${heatColor(d)}" data-hp="${p}" data-hr="${r}" title="${compact(p)} at ${r.toFixed(1)}%: ${money(total)}/mo">${Math.round(d * 100) === 0 ? "" : d > 0 ? "+" : "−"}${Math.abs(d * 100).toFixed(0)}%<small>${money(total)}</small></button></td>`;
+    }
+    html += `</tr>`;
+  }
+  $("heat").innerHTML = html + `</tbody>`;
+}
+
+function renderCompare(c) {
+  const loan = c.m.loan;
+  const rd = state.rounded;
+  const mo = (v) => rd ? money(Math.round(v / 100) * 100) : money(v);
+  const big = (v) => rd ? money(Math.round(v / 1000) * 1000) : money(v);
+  const a15 = amortize(loan, state.rate15, 15);
+  const a30 = amortize(loan, state.rate30, 30);
+  const m15 = monthlyBreakdown(c.price, state, 15, state.rate15);
+  const m30 = monthlyBreakdown(c.price, state, 30, state.rate30);
+  const t = target();
+  const shareCell = (m) => {
+    const tone = toneFor(m.total, t);
+    return `<span class="tone-${tone}">${pct(m.total / state.takeHome * 100)}</span>`;
+  };
+  $("r15Out").textContent = pct(state.rate15);
+  $("r30Out").textContent = pct(state.rate30);
+  $("compareIntro").textContent = `${money(c.price)} home with ${pct(state.downPct, 0)} down (${money(c.m.down)}) and a ${money(loan)} loan. Rates adjust in 0.1% steps.`;
+  $("compareTable").innerHTML = `
+    <thead><tr><th>Mortgage details</th><th>15-Year Fixed</th><th>30-Year Fixed</th></tr></thead>
+    <tbody>
+      <tr><th>Interest rate</th><td>${pct(state.rate15)}</td><td>${pct(state.rate30)}</td></tr>
+      <tr><th>Monthly principal and interest payment</th><td>${mo(a15.payment)}</td><td>${mo(a30.payment)}</td></tr>
+      <tr><th>All-in monthly with taxes, insurance, HOA, and PMI</th><td>${mo(m15.total)}</td><td>${mo(m30.total)}</td></tr>
+      <tr><th>Share of take-home pay</th><td>${shareCell(m15)}</td><td>${shareCell(m30)}</td></tr>
+      <tr><th>Total interest paid</th><td>${big(a15.totalInterest)}</td><td>${big(a30.totalInterest)}</td></tr>
+      <tr><th>Total paid for the loan</th><td>${big(loan + a15.totalInterest)}</td><td>${big(loan + a30.totalInterest)}</td></tr>
+      <tr class="save"><th>Interest saved with a 15-year mortgage</th><td>${big(a30.totalInterest - a15.totalInterest)}</td><td>—</td></tr>
+    </tbody>`;
+
+  const x15 = amortize(loan, state.rate15, 15, state.extra);
+  const x30 = amortize(loan, state.rate30, 30, state.extra);
+  $("extraOut").textContent = `${money(state.extra)}/mo`;
+  const yrs = (n) => `${Math.floor(n / 12)} yr${n % 12 ? ` ${n % 12} mo` : ""}`;
+  $("extraText").textContent = state.extra > 0
+    ? `15-year: paid off in ${yrs(x15.months)}, saving ${money(a15.totalInterest - x15.totalInterest)} more interest. 30-year: paid off in ${yrs(x30.months)}, saving ${money(a30.totalInterest - x30.totalInterest)}.`
+    : "Add extra principal to see how much sooner each loan is paid off.";
+  drawChart(loan, x15, x30);
+}
+
+let chartData = null;
+function drawChart(loan, a15, a30) {
+  const W = 760, H = 300, L = 62, R = 16, T = 16, B = 34;
+  const maxY = Math.max(loan, a30.totalInterest, a15.totalInterest, 1) * 1.05;
+  const x = (yr) => L + yr / 30 * (W - L - R);
+  const y = (v) => T + (1 - v / maxY) * (H - T - B);
+  const line = (pts, key) => pts.map((p, i) => `${i ? "L" : "M"}${x(p.year).toFixed(1)},${y(p[key]).toFixed(1)}`).join("");
+  const step = maxY > 600000 ? 200000 : maxY > 300000 ? 100000 : 50000;
+  let grid = "";
+  for (let v = 0; v <= maxY; v += step) {
+    grid += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="#ececf0"/><text x="${L - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#86868b">${compact(v)}</text>`;
+  }
+  for (let yr = 0; yr <= 30; yr += 5) {
+    grid += `<text x="${x(yr)}" y="${H - 10}" text-anchor="middle" font-size="11" fill="#86868b">${yr === 0 ? "Year 0" : yr}</text>`;
+  }
+  const extend = (pts) => {
+    const last = pts[pts.length - 1];
+    return last.year < 30 ? [...pts, { year: 30, balance: 0, interest: last.interest }] : pts;
+  };
+  const p15 = extend(a15.yearly), p30 = extend(a30.yearly);
+  const area15 = `${line(p15, "balance")}L${x(30)},${y(0)}L${x(0)},${y(0)}Z`;
+  $("chart").innerHTML = `${grid}
+    <path d="${area15}" fill="rgba(0,113,227,0.06)"/>
+    <path d="${line(p30, "balance")}" fill="none" stroke="#30b0c7" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="${line(p15, "balance")}" fill="none" stroke="#0071e3" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="${line(p30, "interest")}" fill="none" stroke="#30b0c7" stroke-width="2" stroke-dasharray="6 5"/>
+    <path d="${line(p15, "interest")}" fill="none" stroke="#0071e3" stroke-width="2" stroke-dasharray="6 5"/>
+    <text x="${x(30) - 4}" y="${y(a30.totalInterest) - 8}" text-anchor="end" font-size="12" font-weight="600" fill="#1f8ea3">30-yr interest ${compact(a30.totalInterest)}</text>
+    <text x="${x(30) - 4}" y="${y(a15.totalInterest) + 18}" text-anchor="end" font-size="12" font-weight="600" fill="#0071e3">15-yr interest ${compact(a15.totalInterest)}</text>
+    <line id="hoverLine" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="#1d1d1f" stroke-width="1" opacity="0"/>
+    <rect id="hoverRect" x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent"/>`;
+  chartData = { p15, p30, x, L, R, W };
+}
+
+function chartHover(ev) {
+  if (!chartData) return;
+  const svg = $("chart");
+  const rect = svg.getBoundingClientRect();
+  const sx = (ev.clientX - rect.left) / rect.width * chartData.W;
+  const yr = clamp(Math.round((sx - chartData.L) / (chartData.W - chartData.L - chartData.R) * 30), 0, 30);
+  const at = (pts) => pts.find((p) => p.year >= yr) || pts[pts.length - 1];
+  const a = at(chartData.p15), b = at(chartData.p30);
+  const lx = chartData.x(yr);
+  const ln = $("hoverLine");
+  ln.setAttribute("x1", lx); ln.setAttribute("x2", lx); ln.setAttribute("opacity", "0.35");
+  const tip = $("chartTip");
+  tip.hidden = false;
+  tip.innerHTML = `<b>Year ${yr}</b><br>15-yr balance ${money(a.balance)} · interest ${money(a.interest)}<br>30-yr balance ${money(b.balance)} · interest ${money(b.interest)}`;
+  const wrap = $("chartWrap").getBoundingClientRect();
+  const px = lx / chartData.W * rect.width;
+  tip.style.left = `${clamp(px, 140, wrap.width - 140)}px`;
+  tip.style.top = `${ev.clientY - wrap.top - 12}px`;
+}
+
+/* ---------- Events ---------- */
+
+function toast(msg, link) {
+  const el = $("toast");
+  el.innerHTML = esc(msg) + (link ? `<input readonly value="${esc(link)}">` : "");
+  el.hidden = false;
+  if (link) { const i = el.querySelector("input"); i.focus(); i.select(); }
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => { el.hidden = true; }, link ? 9000 : 3200);
+}
+
+function setValue(key, raw, el) {
+  if (key === "downUsd") {
+    const v = Math.max(0, +raw || 0);
+    state.downPct = clamp(v / state.price * 100, 0, 100);
+    return;
+  }
+  if (typeof DEFAULTS[key] === "boolean") { state[key] = !!raw; return; }
+  if (raw === "" || raw == null || isNaN(+raw)) return;
+  let v = +raw;
+  if (el && el.min !== "" && el.type === "range") v = clamp(v, +el.min, +el.max);
+  if (v < 0) v = 0;
+  if ((key === "price" && v < 10000) || (key === "takeHome" && v < 100)) return;
+  state[key] = v;
+  if (key === "millage") {
+    const match = AREAS.find((a) => a.mills === v && a.id === state.area);
+    if (!match) state.area = "custom";
+  }
+}
+
+document.addEventListener("input", (ev) => {
+  const el = ev.target;
+  if (el.dataset.bind) {
+    setValue(el.dataset.bind, el.type === "checkbox" ? el.checked : el.value, el);
+    render();
+  } else if (el.dataset.inspAmt) {
+    if (el.value !== "" && !isNaN(+el.value)) state.insp[el.dataset.inspAmt].amount = Math.max(0, +el.value);
+    render();
+  } else if (el.dataset.inspOn) {
+    state.insp[el.dataset.inspOn].on = el.checked;
+    render();
+  }
+});
+
+document.addEventListener("change", (ev) => {
+  const el = ev.target;
+  if (el.dataset.bind === "price" && el.type === "number") {
+    state.price = clamp(Math.round((+el.value || DEFAULTS.price) / 1000) * 1000, 10000, 10000000);
+    render();
+  } else if (el.dataset.bind && el.type === "number") {
+    render();
+  }
+});
+
+document.addEventListener("click", (ev) => {
+  const seg = ev.target.closest("[data-seg]");
+  if (seg) {
+    const key = seg.dataset.seg;
+    const v = seg.dataset.value;
+    state[key] = typeof DEFAULTS[key] === "number" ? +v : typeof DEFAULTS[key] === "boolean" ? v === "true" : v;
+    render();
+    return;
+  }
+  const pill = ev.target.closest("[data-area]");
+  if (pill) {
+    const a = AREAS.find((x) => x.id === pill.dataset.area);
+    state.area = a.id;
+    if (a.mills != null) state.millage = a.mills;
+    render();
+    if (a.id === "custom") $("millIn").focus();
+    return;
+  }
+  const size = ev.target.closest("[data-size]");
+  if (size) {
+    state.insp.general.amount = +size.dataset.size;
+    state.insp.general.on = true;
+    render();
+    return;
+  }
+  const cell = ev.target.closest("[data-hp]");
+  if (cell) {
+    state.price = +cell.dataset.hp;
+    state[state.term === 15 ? "rate15" : "rate30"] = +cell.dataset.hr;
+    render();
+    toast(`Set to ${money(state.price)} at ${(+cell.dataset.hr).toFixed(1)}% (${state.term}-year).`);
+  }
+});
+
+$("areaPills").innerHTML = AREAS.map((a) => `<button type="button" class="pill-btn" data-area="${a.id}">${a.label}${a.mills ? ` · ${a.mills}` : ""}</button>`).join("");
+
+$("snapMaxBtn").addEventListener("click", () => {
+  const max = maxAffordable();
+  if (!max) { toast("Taxes, insurance, and HOA alone are over 25% of take-home."); return; }
+  state.price = max;
+  render();
+  toast(`Home price set to ${money(max)}.`);
+});
+$("down20Btn").addEventListener("click", () => { state.downPct = 20; render(); });
+$("estExpBtn").addEventListener("click", () => {
+  const m = monthlyBreakdown(state.price);
+  state.expenses = Math.round((m.total + state.takeHome * 0.25) / 50) * 50;
+  render();
+});
+$("resetBtn").addEventListener("click", () => {
+  state = cloneDefaults();
+  history.replaceState(null, "", location.pathname);
+  render();
+  toast("Reset to Hoover defaults.");
+});
+$("shareBtn").addEventListener("click", async () => {
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+  const link = `${location.origin}${location.pathname}#s=${encoded}`;
+  try {
+    await navigator.clipboard.writeText(link);
+    toast("Scenario link copied.");
+  } catch (e) {
+    toast("Copy this link:", link);
+  }
+});
+$("chartWrap").addEventListener("pointermove", chartHover);
+$("chartWrap").addEventListener("pointerleave", () => {
+  $("chartTip").hidden = true;
+  const ln = document.getElementById("hoverLine");
+  if (ln) ln.setAttribute("opacity", "0");
+});
+
+render();
+</script>
+</body>
+</html>

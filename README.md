@@ -18,6 +18,17 @@ Then open http://127.0.0.1:8765
 
 The title zooms back out to the 50-mile ring. **My location** asks the browser for your live position, keeps the blue dot updated as you move, and switches to **Re-center** if you pan away; tap the blue dot (or the **Work** pin) to see your containing neighborhood, suburb, school district, and county, closest schools and amenities, and live road driving distance and route to work (defaulting to `2204 Lakeshore Dr #325, Homewood, AL 35209`). Inside the commute card you can flip **To work** / **From work**, pick a weekday departure time (`Leave now`, `8:00 AM`, `5:15 PM`, or custom), open the trip in **Google Maps**, change the saved work address, or paste a free-tier **TomTom**, **Mapbox**, or **HERE** key (saved only in your browser) for historical rush-hour traffic. On a phone, browsers require `https://` or `localhost` to share location. Search keeps every word: `hoover elementary`, `private high`, `publix`, `shelby`.
 
+## Finances
+
+**Finances** in the header opens `finances.html`, a home-buying calculator. It runs in the browser and saves your numbers in that browser only.
+
+- **25% rule.** Enter monthly take-home pay and a home price ($1,000 steps). The page totals principal, interest, property tax, homeowners insurance, HOA, and PMI, and shows how far above or below 25% of take-home that is. It also solves for the most house you can afford at 25%. The check uses a 15-year fixed loan by default, with a switch to 30-year.
+- **Monthly defaults for Hoover.** Property tax uses 2026 millage for Hoover in Jefferson County (72.6 mills), assessed at 10% with the standard homestead exemption. One tap switches to Hoover in Shelby County, Birmingham, Homewood, Vestavia Hills, Mountain Brook, Trussville, Pelham, Helena, Alabaster, or a custom millage. Insurance starts at $2,414 a year on a $300,000 home and scales with price. HOA starts at $0. PMI is $0 at 20% down or more.
+- **Cash on hand.** Down payment (20% by default, 1% steps), closing costs (2% of the mortgage by default, or an itemized Alabama estimate with recording taxes, title, lender fees, and prepaids), the buyer's agent (3% by default, 0.1% steps, separate from closing costs), inspections (general, termite, and radon on by default), moving ($1,000), and a 3–6 month emergency fund from monthly expenses. The total is at the bottom, with a savings progress bar.
+- **Comparison.** A 15-year vs. 30-year table like Ramsey's (6.5% and 7% by default, 0.1% steps), an extra-principal simulator, a balance and interest chart, and a price-by-rate heatmap against your 25% target.
+
+Tapping a suburb or neighborhood on the map offers **Estimate buying costs in …**, which opens the calculator with that city's millage when there is a preset for it. **Copy scenario link** saves every input in the link.
+
 ## Layers
 
 - **Suburbs** are Census cities, towns, and census-designated places that meet the circle. That includes Helena, Hoover, Trussville, Homewood, Mountain Brook, Vestavia Hills, and the smaller places around them. Touching places use different colors, and the name is drawn in that color. Names appear as you zoom in.
